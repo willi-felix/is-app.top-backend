@@ -2,3 +2,4 @@ userinfo.json
 /__pycache__/
 key.pem
 cert.pem
+.env

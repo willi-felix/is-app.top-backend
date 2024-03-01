@@ -6,6 +6,9 @@ import os
 from flask_cors import CORS 
 import time
 from flask_limit import RateLimiter
+from dotenv import load_dotenv
+
+load_dotenv()
 """
 !!! WARNING !!!
 There is NO backup anywhere. Please implement it
@@ -14,8 +17,16 @@ There is NO backup anywhere. Please implement it
 app = Flask(__name__)
 limiter = RateLimiter(app)
 CORS(app)
-handler = ipinfo.getHandler(os.environ['IPINFO_KEY'])
+handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
 
+@app.route("/")
+def index():
+  elements: str = "<!DOCTYPE html> <body style='display: inline;'><div style='display: grid;'>"
+  for url in app.url_map.iter_rules():
+    elements+=f"<a href={url}>{url}</a>"
+    
+  elements+="</div></body>"
+  return elements,200
 @app.route('/login', methods=['POST'])
 def login():
   token = request.json.get('TOKEN')
