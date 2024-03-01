@@ -62,7 +62,7 @@ def save_data(data: dict) -> bool:
   file.close()
   return True
   
-def create_user(username: str, password: str, email: str, language: str, country: str, time_signed_up: float or int) -> bool:
+def create_user(username: str, password: str, email: str, language: str, country: str, time_signed_up) -> bool:
   """
   Creates an user.
   """
@@ -108,7 +108,7 @@ def load_user(token: str) -> bool:
     return True
   return False
   
-def get_user_data(token: str) -> dict or bool or int: # kys if you abuse this! <3 I wrote the whole account system in a day, don't blame me for the horrible security
+def get_user_data(token: str): # kys if you abuse this! <3 I wrote the whole account system in a day, don't blame me for the horrible security
   """
   Returns the user's data.
   """
