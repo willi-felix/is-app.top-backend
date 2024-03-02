@@ -3,3 +3,5 @@ userinfo.json
 key.pem
 cert.pem
 .env
+.venv/
+venv/

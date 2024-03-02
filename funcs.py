@@ -12,18 +12,30 @@ import random
 import time
 import requests
 from dotenv import load_dotenv
+import resend
+
+verif_codes: dict = {}
 
 load_dotenv()
+resend.api_key = os.getenv("RESEND_KEY")
+
 def generate_password(length: int) -> str:
   """
   Returns a random password THAT ISNT ENCRYPTED.
   """
   return ''.join(random.choice(string.printable) for i in range(length)) # just some random characters. not encrypted. I have no idea what this is used for
 
+def password_is_correct(username: str, password: str) -> bool:
+  data = load_data()
+  return bcrypt.checkpw(password.encode("utf-8"), data[username]["password"].encode("utf-8")) # correct creds
+
+def generate_random_pin(lenght: int) -> int:
+  return int(''.join(random.choice(string.digits) for i in range(lenght)))
 
 def parse_token(token: str) -> list:
   """
-  Parses a token into username and password. If the token is very 'invalid' (aka doesn't have a | character) it returns ["N","A"]
+  Parses a token into password and username. If the token is very 'invalid' (aka doesn't have a | character) it returns ["N","A"]
+  [password, username] # dumb ik
   """
   result: list = []
 
@@ -75,18 +87,19 @@ def create_user(username: str, password: str, email: str, language: str, country
   if token in data: # If the username already exists, dont let the user sign up
     return False
   else:
-    data[token] = {}
+    data[token] = {} # new user map
     if language==None:
       language = "en-US" # If language isnt specified, set it to english
     fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8')) # The hashing engine
-    data[token]['email'] = (fernet.encrypt(bytes(email,'utf-8')).decode(encoding='utf-8'))
-    data[token]['password'] = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(encoding='utf-8')
-    data[token]["display-name"] = (fernet.encrypt(bytes(username,'utf-8')).decode(encoding='utf-8'))
+    data[token]['email'] = (fernet.encrypt(bytes(email,'utf-8')).decode(encoding='utf-8')) # the encrypted email, but it is less encrypted
+    data[token]['password'] = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(encoding='utf-8') # the encrypted password
+    data[token]["display-name"] = (fernet.encrypt(bytes(username,'utf-8')).decode(encoding='utf-8')) # their display name, I don't think this can be changed tho lol
     data[token]['lang'] = language # their locale gotten from js!
-    data[token]['country'] = country
+    data[token]['country'] = country # their country
     data[token]["created"] = time_signed_up
     data[token]["last-login"] = time.time() # :sunglasses:
     data[token]["permissions"] = {} # the permissions
+    data[token]["verified"] = False # the user has not verified their email
     data[token]["domains"] = {} # the domains they have
     save_data(data) # Saves that data
     return True
@@ -99,7 +112,7 @@ def load_token(token):
   username = parse_token(token)[1] # Gets the second part of token (username)
   password = parse_token(token)[0] # Gets the first part of token (password)
   if(data.__contains__(username)):
-    return bcrypt.checkpw(password.encode("utf-8"), data[username]["password"].encode("utf-8")) # Checks if passwords match
+    return password_is_correct(username=username,password=password) # Checks if passwords match
   else:
     return False
 
@@ -123,7 +136,7 @@ def get_user_data(token: str): # kys if you abuse this! <3 I wrote the whole acc
   username = parse_token(token)[1]
   password = parse_token(token)[0]
   if data.get(username,None) != None:
-    if bcrypt.checkpw(password.encode("utf-8"), data[username]["password"].encode("utf-8")):
+    if password_is_correct(username=username,password=password):
       fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8'))
       return {
               "username": (fernet.decrypt(str.encode(data[username]["display-name"]))).decode("utf-8"),
@@ -182,10 +195,12 @@ def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html statu
   password = parse_token(token)[0] # again... why isn't this a function? 'get_username_and_password_from_token', ohh, were doing that already. mb
   print(check_domain(domain))
   amount_of_domains: int = data[username]["domains"].__len__() # the amount of domains the user has.
+  if(is_user_verified(token)[1]!=200):
+    return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
   if(data[username]["permissions"].get("max_domains",1)<=amount_of_domains): # if user's max domains are more than the current amount of domains
     if(check_domain(domain)[1]==200): # If is a valid domain.
       if (data.get(username,None) != None): # if user exists, check so we are not 'fucked'
-        if bcrypt.checkpw(password.encode("utf-8"), data[username]["password"].encode("utf-8")): # correct creds
+        if password_is_correct(username=username,password=password): # correct creds
           headers = {
             "Content-Type":"application/json", # tryna not to confuse cf :(
             "Authorization": "Bearer "+os.getenv('CF_KEY_W'), # cloudflare token to write.
@@ -218,7 +233,7 @@ def modify_domain(domain: str, token: str, new_ip: str) -> tuple:
   username = parse_token(token)[1]
   password = parse_token(token)[0]
   if (data.get(username,None) != None): # if user exists
-    if bcrypt.checkpw(password.encode("utf-8"), data[username]["password"].encode("utf-8")): # correct creds
+    if password_is_correct(username=username,password=password): # correct creds
       if(data[username]["domains"].get(domain,False)!=False):
         fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8'))
         data_ = {
@@ -249,7 +264,7 @@ def get_user_domains(token: str) -> dict:
   username = parse_token(token)[1]
   password = parse_token(token)[0]
   if (data.get(username,None) != None): # if user exists
-    if bcrypt.checkpw(password.encode("utf-8"), data[username]["password"].encode("utf-8")): # correct creds
+    if password_is_correct(username=username,password=password): # correct creds
       if(data[username].get("domains",[]).__len__()!=0): # if they own a domain
           return data[username]["domains"] # return the domains that the user owns.
       else:
@@ -258,5 +273,76 @@ def get_user_domains(token: str) -> dict:
       return {"Status": 401, "Description":"Invalid login."}
   else:
     return {"Status": 404, "Description": "User does not exist?"} # The user *somehow* doesn't exist??
+
+def send_verify_email(token: str) -> tuple:
+  global verif_codes
+  """
+  Send a verification code to user.
+
+  Args:
+      email (str): the user's email
+      username (str): the username.
+  Returns:
+      HTTP status code if the email got sent.
+  """
+  data = load_data()
+  username = parse_token(token)[1]
+  password = parse_token(token)[0]
+  fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8')) # The hashing engine
+  if(data[username]["verified"]==False):
+    if password_is_correct(username=username,password=password): # correct creds
+      email = (fernet.decrypt(str.encode(data[username]["email"]))).decode("utf-8") # decrypt the email
+      verif_codes[email] = {}
+      verif_codes[email]["code"] = generate_random_pin(6)
+      verif_codes[email]["expires"] = round(time.time())+5*60 # the current time + 5 minutes
+      
+      r = resend.Emails.send({ # for some reason this email *always* goes to spam, so someone should warn the user lol
+        "from": 'send@frii.site', # do not change this. 
+        "to": email, # who the email should be sent to
+        "subject": "Verification", # TODO better name
+        "html": f"""
+        <h1>Hello {username}</h1>,
+        your verification code is <strong>{verif_codes.get(email,{}).get('code','Severe server error')}</strong>.
+        <h6>This code will expire in 5 minutes.</h6>
+        """
+        # TODO make it more beautiful.
+      })
+      return 'OK',200 # the email got sent? idk what resend.Emails.send returns if it's unsuccesful, because it isnt documented (as of 2.3.2024 ddmmyyyy)
+    else:
+      return 'Unauthorized', 401 # wrong passowrd mate
+  else:
+    return 'Conflict',409 # user is already verified
   
+def verify_email(token: str, code: int) -> tuple:
+  data = load_data()
+  username = parse_token(token)[1]
+  password = parse_token(token)[0]
+  fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8')) # The hashing engine
+  email = (fernet.decrypt(str.encode(data[username]["email"]))).decode("utf-8") # decrypt the email
+
+  if password_is_correct(username=username,password=password): # correct creds
+    if int(verif_codes[email]["code"])==int(code):
+      if round(time.time()) < verif_codes[email]["expires"]:
+        data[username]["verified"] = True
+        del verif_codes[email]
+        save_data(data)
+        return 'OK', 200
+      else:
+        del verif_codes[email]
+        return 'Not Found', 404 # The code has expired
+    else:
+      return 'Forbidden', 403 # The code is invalid.
+  else:
+    return 'Unauthorized', 401 # invalid creds
+  
+  
+def is_user_verified(token: str) -> tuple:
+  data = load_data()
+  username = parse_token(token)[1]
+  password = parse_token(token)[0]
+  if password_is_correct(username=username,password=password): # correct creds
+    verified: bool = data[username]["verified"]
+    if not verified:
+      return 'Unauthorized',401
+    return 'OK',200
 # thats it, finally!

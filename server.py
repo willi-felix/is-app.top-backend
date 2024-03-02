@@ -8,6 +8,9 @@ import time
 from flask_limit import RateLimiter
 from dotenv import load_dotenv
 
+
+
+
 load_dotenv()
 """
 !!! WARNING !!!
@@ -82,12 +85,26 @@ def change_domain():
   ip = request.json.get("ip")
   return modify_domain(domain,token,ip)
 
+@app.route("/send-verification-code",methods=["POST"])
+def send_user_verification():
+  token = request.json.get("TOKEN")
+  return send_verify_email(token)
+
+@app.route("/verify-emailcode", methods=["POST"])
+def verify_email_code():
+  token = request.json.get("TOKEN")
+  code = request.json.get("code")
+  return verify_email(token=token,code=code)
 
 @app.route("/get-domains", methods=["POST"])
 def get_domain_list():
   token = request.json.get("TOKEN")
   return get_user_domains(token)
 
+@app.route("/is-verified", methods=["POST"])
+def check_verified():
+  token = request.json.get("TOKEN")
+  return is_user_verified(token)
+
 if(__name__=="__main__"):
-  context = ('cert.pem', 'key.pem') #certificate and key files
-  app.run(host='0.0.0.0', port=81, ssl_context=context)
+  app.run(host='0.0.0.0', port=5000)
