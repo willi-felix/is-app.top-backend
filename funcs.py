@@ -260,7 +260,7 @@ def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html statu
     else:
       return 'Conflict', 409 # it aint a valid domain mate
   else: 
-    return 'Method Not Allowed', 405 # if the user is trying to make more domains than they are allowed to.
+    return f'Method Not Allowed | {amount_of_domains}', 405 # if the user is trying to make more domains than they are allowed to.
 
 def modify_domain(domain: str, token: str, new_ip: str) -> tuple:
   username = parse_token(token)[1]
