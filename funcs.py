@@ -228,10 +228,10 @@ def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html statu
   username = parse_token(token)[1] # get the username from the token
   password = parse_token(token)[0] # again... why isn't this a function? 'get_username_and_password_from_token', ohh, were doing that already. mb
   data = get_data(username=username) # load the 'database' (lmao)
-  amount_of_domains: int = data["domains"].__len__() # the amount of domains the user has.
+  amount_of_domains: int = data["domains"].__len__()-1 # the amount of domains the user has.
   if(is_user_verified(token)[1]!=200):
     return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
-  if(data["permissions"].get("max_domains",1)<=amount_of_domains): # if user's max domains are more than the current amount of domains
+  if(data["permissions"].get("max_domains",1) <= amount_of_domains): # if user's max domains are more than the current amount of domains
     if(check_domain(domain)[1]==200): # If is a valid domain.
       if(user_exists(token=token)): # if user exists, check so we are not 'fucked'
         if password_is_correct(username=username,password=password): # correct creds
