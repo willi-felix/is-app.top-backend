@@ -18,6 +18,7 @@ There is NO backup anywhere. Please implement it
 """
 
 app = Flask(__name__)
+app.config['CORS_HEADERS'] = 'Content-Type'
 limiter = RateLimiter(app)
 CORS(app)
 handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
@@ -43,7 +44,6 @@ def login():
     return 'Unauthorized', 401
 
 @app.route('/sign-up', methods=['POST'])
-@cross_origin()
 def sign_up():
   username = request.json.get('username')
   password = request.json.get('password')
