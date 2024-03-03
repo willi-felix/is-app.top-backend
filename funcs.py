@@ -167,8 +167,10 @@ def get_user_data(token: str): # kys if you abuse this! <3 I wrote the whole acc
   # I don't think this is ever used anywhere, I'm leaving it just in case !
   username = parse_token(token)[1]
   password = parse_token(token)[0]
-  data = get_data(username=username)
-  
+  try:
+    data = get_data(username=username)
+  except IndexError: # user does not exist
+    return 404
   if(user_exists(username=username)):
     if password_is_correct(username=username,password=password):
       fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8'))
@@ -211,7 +213,10 @@ def check_domain(domain: str) -> tuple: # if the domain is actually domainable! 
   return "Conflict",409 # I don't really know, just guessing lol
 
 def add_domain_to_user(user: str, domain: str, ip: str, domain_id: str = None, true_domain: bool=None) -> bool:
-  data = get_data(username=user)
+  try:
+   data = get_data(username=user)
+  except IndexError:
+    return False
   if(data.get("domains",{}).get(domain,None)==None): # if the user is registering it for the first time, instead of updating it
     data["domains"][domain] = {}
   
@@ -227,11 +232,14 @@ def add_domain_to_user(user: str, domain: str, ip: str, domain_id: str = None, t
 def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html status code: ex: 'OK', 200
   username = parse_token(token)[1] # get the username from the token
   password = parse_token(token)[0] # again... why isn't this a function? 'get_username_and_password_from_token', ohh, were doing that already. mb
-  data = get_data(username=username) # load the 'database' (lmao)
-  amount_of_domains: int = data["domains"].__len__()-1 # the amount of domains the user has.
+  try:
+    data = get_data(username=username) # load the 'database' (lmao)
+  except IndexError:
+    return 'Not Found', 404
+  amount_of_domains: int = data["domains"].__len__() # the amount of domains the user has.
   if(is_user_verified(token)[1]!=200):
     return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
-  if(data["permissions"].get("max_domains",1) <= amount_of_domains): # if user's max domains are more than the current amount of domains
+  if(amount_of_domains <= data["permissions"].get("max_domains",1)): # if user's max domains are more than the current amount of domains
     if(check_domain(domain)[1]==200): # If is a valid domain.
       if(user_exists(token=token)): # if user exists, check so we are not 'fucked'
         if password_is_correct(username=username,password=password): # correct creds
@@ -265,9 +273,9 @@ def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html statu
 def modify_domain(domain: str, token: str, new_ip: str) -> tuple:
   username = parse_token(token)[1]
   password = parse_token(token)[0]
-  data = get_data(username=username)
   
   if (user_exists(token=token)):
+    data = get_data(username=username)
     if password_is_correct(username=username,password=password): # correct creds
       if(data["domains"].get(domain,False)!=False): # of the doman exists
         fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8'))
@@ -297,8 +305,9 @@ def modify_domain(domain: str, token: str, new_ip: str) -> tuple:
 def get_user_domains(token: str) -> dict: 
   username = parse_token(token)[1]
   password = parse_token(token)[0]
-  data = get_data(username=username)
   if (user_exists(token=token)): # if user exists
+    data = get_data(username=username)
+    
     if password_is_correct(username=username,password=password): # correct creds
       if(data.get("domains",[]).__len__()!=0): # if they own a domain
           return data["domains"] # return the domains that the user owns.
