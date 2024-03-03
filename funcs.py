@@ -39,12 +39,14 @@ def generate_random_pin(lenght: int) -> int:
 
 def parse_token(token: str) -> list:
   """
-  Parses a token into password and username. If the token is very 'invalid' (aka doesn't have a | character) it returns ["N","A"]
+  Parses a token into password and username. If the token is very 'invalid' (aka doesn't have a | character) it returns ["N","A"], if the token is empty, it retusn ["X,"X"]
   [password, username] # dumb ik
   """
   result: list = []
-
-  result = token.split("|")
+  try:
+    result = token.split("|")
+  except AttributeError:
+    result = ["X","X"]
   if(result.__len__()!=2):
     result = ["N","A"] # returns 'N,A' if the token is garbled.
   return result
@@ -103,6 +105,8 @@ def user_exists(token: str=None, username: str=None) -> bool:
     raise ValueError("Neither token or username was specified.")
   if(token != None):
     username = parse_token(token)[1]
+    if username=="X":
+      return False
   cursor = collection.find({"_id":username})
   for result in cursor:
     results_found.append(result)
@@ -156,7 +160,10 @@ def load_user(token: str) -> bool: # 'load_user' is such a terrible name
   """
   # doesn't load_token do this excact same thing???
   if load_token(token=token):
-    user_logged_in(parse_token(token)[1]) # make the user's "last logged in" to the current date
+    username: str = parse_token(token)[1]
+    if(username=="X"):
+      return False
+    user_logged_in(username) # make the user's "last logged in" to the current date
     return True # what? ig the token is valid?
   return False # what? ig the token is invalid?
   
@@ -167,6 +174,8 @@ def get_user_data(token: str): # kys if you abuse this! <3 I wrote the whole acc
   # I don't think this is ever used anywhere, I'm leaving it just in case !
   username = parse_token(token)[1]
   password = parse_token(token)[0]
+  if(username=="X"):
+    return 405
   try:
     data = get_data(username=username)
   except IndexError: # user does not exist
@@ -232,6 +241,8 @@ def add_domain_to_user(user: str, domain: str, ip: str, domain_id: str = None, t
 def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html status code: ex: 'OK', 200
   username = parse_token(token)[1] # get the username from the token
   password = parse_token(token)[0] # again... why isn't this a function? 'get_username_and_password_from_token', ohh, were doing that already. mb
+  if(username=="X"):
+    return 'Precondition Failed', 412
   try:
     data = get_data(username=username) # load the 'database' (lmao)
   except IndexError:
@@ -273,7 +284,8 @@ def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html statu
 def modify_domain(domain: str, token: str, new_ip: str) -> tuple:
   username = parse_token(token)[1]
   password = parse_token(token)[0]
-  
+  if(username=="X"):
+    return 'Precondition Failed', 412
   if (user_exists(token=token)):
     data = get_data(username=username)
     if password_is_correct(username=username,password=password): # correct creds
@@ -305,6 +317,8 @@ def modify_domain(domain: str, token: str, new_ip: str) -> tuple:
 def get_user_domains(token: str) -> dict: 
   username = parse_token(token)[1]
   password = parse_token(token)[0]
+  if(username=="X"):
+    return 'Precondition Failed', 412
   if (user_exists(token=token)): # if user exists
     data = get_data(username=username)
     
@@ -331,6 +345,8 @@ def send_verify_email(token: str) -> tuple:
   """
   username = parse_token(token)[1]
   password = parse_token(token)[0]
+  if(username=="X"):
+    return 'Precondition Failed', 412
   data = get_data(username=username)
   fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8')) # The hashing engine
   if(data["verified"]==False):
@@ -360,6 +376,8 @@ def send_verify_email(token: str) -> tuple:
 def verify_email(token: str, code: int) -> tuple:
   username = parse_token(token)[1]
   password = parse_token(token)[0]
+  if(username=="X"):
+    return 'Precondition Failed', 412
   data = get_data(username=username)
   fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8')) # The hashing engine
   email = (fernet.decrypt(str.encode(data["email"]))).decode("utf-8") # decrypt the email
@@ -382,6 +400,8 @@ def verify_email(token: str, code: int) -> tuple:
 def is_user_verified(token: str) -> tuple:
   username = parse_token(token)[1]
   password = parse_token(token)[0]
+  if(username=="X"):
+    return 'Precondition Failed', 412
   data = get_data(username=username)
   
   if password_is_correct(username=username,password=password): # correct creds

@@ -8,9 +8,6 @@ import time
 from flask_limit import RateLimiter
 from dotenv import load_dotenv
 
-
-
-
 load_dotenv()
 """
 !!! WARNING !!!
