@@ -3,7 +3,7 @@ from flask import request
 from funcs import *
 import ipinfo
 import os 
-from flask_cors import CORS 
+from flask_cors import CORS, cross_origin
 import time
 from flask_limit import RateLimiter
 from dotenv import load_dotenv
@@ -23,6 +23,7 @@ CORS(app)
 handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
 
 @app.route("/")
+@cross_origin()
 def index():
   elements: str = "<!DOCTYPE html> <body style='display: inline;'><div style='display: grid;'>"
   for url in app.url_map.iter_rules():
@@ -42,6 +43,7 @@ def login():
     return 'Unauthorized', 401
 
 @app.route('/sign-up', methods=['POST'])
+@cross_origin()
 def sign_up():
   username = request.json.get('username')
   password = request.json.get('password')
