@@ -289,7 +289,8 @@ def modify_domain(domain: str, token: str, new_ip: str) -> tuple:
   if (user_exists(token=token)):
     data = get_data(username=username)
     if password_is_correct(username=username,password=password): # correct creds
-      if(data["domains"].get(domain,False)!=False): # of the doman exists
+      domains: dict = data["domains"]
+      if(domain in domains): # if the doman exists
         fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8'))
         data_ = {
           "content": new_ip,
