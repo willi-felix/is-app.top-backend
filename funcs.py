@@ -247,7 +247,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
     data = get_data(username=username) # load the 'database' (lmao)
   except IndexError:
     return 'Not Found', 404
-  if(type not in ["A","CNAME","TXT"]):
+  if(type not in ["A","CNAME","TXT","NS"]):
     return 'Method Not Allowed', 405 # The type is invalid.
   amount_of_domains: int = data["domains"].__len__() # the amount of domains the user has.
   if(is_user_verified(token)[1]!=200):
