@@ -424,9 +424,18 @@ def delete_domain(token: str, domain: str) -> tuple:
     domains: dict = data["domains"] # dict of the domains that the user has
     if password_is_correct(username=username,password=password): # correct creds
       if(domain in domains): # user owns the domain
-        del domains[domain]
-        update_data(username=username,key="domains",value=domains)
-        return "OK",200
+        headers: dict = {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer "+os.getenv('CF_KEY_W'), # cloudflare write token
+          "X-Auth-Email": os.getenv("EMAIL")
+        }
+        response = requests.delete(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records/{data['domains'][domain]['id']}",headers=headers)
+        if(response.status_code==200):
+          del domains[domain]
+          update_data(username=username,key="domains",value=domains)
+          return "OK",200
+        else:
+          return 'Internal Server Error',500
       else:
         return 'Forbidden', 403 # if user does not own the domain
     else:
