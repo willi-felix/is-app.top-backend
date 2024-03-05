@@ -63,13 +63,13 @@ def sign_up():
     return 'Conflict', 409
 
 @app.route('/domain-is-available',methods=["GET"])
-@limiter.rate_limit(limit=4,period=300)
+@limiter.rate_limit(limit=12,period=300)
 def domain_is_available():
   domain = request.args.get("domain",None)
   return check_domain(domain)
 
 @app.route("/register-domain",methods=["POST"])
-@limiter.rate_limit(limit=3,period=10800)
+@limiter.rate_limit(limit=9,period=10800)
 def register_domain():
   domain = request.json.get("domain")
   token = request.json.get("TOKEN")
