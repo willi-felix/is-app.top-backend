@@ -221,16 +221,17 @@ def check_domain(domain: str) -> tuple: # if the domain is actually domainable! 
     return "OK",200 # everything is fine! just register it already bruv
   return "Conflict",409 # I don't really know, just guessing lol
 
-def add_domain_to_user(user: str, domain: str, ip: str, domain_id: str = None, true_domain: bool=None) -> bool:
+def add_domain_to_user(user: str, domain: str, ip: str,  type: str=None, domain_id: str = None, true_domain: bool=None) -> bool:
   try:
    data = get_data(username=user)
   except IndexError:
     return False
   if(data.get("domains",{}).get(domain,None)==None): # if the user is registering it for the first time, instead of updating it
     data["domains"][domain] = {}
-  
   data["domains"][domain]["ip"] = ip
   data["domains"][domain]["registered"] = time.time() 
+  if(type!=None):
+    data["domains"][domain]["type"] = type # the record type; A, CNAME, or TXT
   if(true_domain!=None): # 'true_domain' = A record that points to an ip address, 'false_domain' is just a redirect.
     data["domains"][domain]["true-domain"] = true_domain
   if(domain_id!=None): # If the id isn't none, then override it. Ignore otherwise.
@@ -238,7 +239,7 @@ def add_domain_to_user(user: str, domain: str, ip: str, domain_id: str = None, t
   return update_data(username=user,key="domains",value=data["domains"])
    
    
-def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html status code: ex: 'OK', 200
+def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns html status code: ex: 'OK', 200
   username = parse_token(token)[1] # get the username from the token
   password = parse_token(token)[0] # again... why isn't this a function? 'get_username_and_password_from_token', ohh, were doing that already. mb
   if(username=="X"):
@@ -247,11 +248,13 @@ def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html statu
     data = get_data(username=username) # load the 'database' (lmao)
   except IndexError:
     return 'Not Found', 404
+  if(type not in ["A","CNAME","TXT"]):
+    return 'Method Not Allowed', 405 # The type is invalid.
   amount_of_domains: int = data["domains"].__len__() # the amount of domains the user has.
   if(is_user_verified(token)[1]!=200):
     return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
-  if(amount_of_domains <= data["permissions"].get("max_domains",1)): # if user's max domains are more than the current amount of domains
-    if(check_domain(domain)[1]==200): # If is a valid domain.
+  if(amount_of_domains <= data["permissions"].get("max_domains",3)): # if user's max domains are more than the current amount of domains
+    if(check_domain(domain)[1]==200 or type=="TXT" or type=="CNAME"): # If is a valid domain.
       if(user_exists(token=token)): # if user exists, check so we are not 'fucked'
         if password_is_correct(username=username,password=password): # correct creds
           headers = {
@@ -264,7 +267,7 @@ def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html statu
             "content": ip,
             "name": domain+'.frii.site', # because 'domain' is *only* the subdomain (example.frii.site->example)
             "proxied": False, # so cloudflare doesn't proxy the content
-            "type": "A", # for ipv4
+            "type": type.strip(), # the type of the record.
             "comment": "Issued by "+(fernet.decrypt(str.encode(data["display-name"]))).decode("utf-8"), # just a handy-dandy lil feature that shows the admin (me) who registered the domain
             "ttl": 1 # auto ttl
           }
@@ -279,7 +282,7 @@ def give_domain(domain: str, ip: str, token: str) -> tuple: # returns html statu
     else:
       return 'Conflict', 409 # it aint a valid domain mate
   else: 
-    return f'Method Not Allowed | {amount_of_domains} | {data["permissions"].get("max_domains",1)}', 405 # if the user is trying to make more domains than they are allowed to.
+    return f'Method Not Allowed', 405 # if the user is trying to make more domains than they are allowed to.
 
 def modify_domain(domain: str, token: str, new_ip: str) -> tuple:
   username = parse_token(token)[1]
@@ -296,7 +299,7 @@ def modify_domain(domain: str, token: str, new_ip: str) -> tuple:
           "content": new_ip,
           "name": domain+".frii.site",
           "proxied": False,
-          "type": "A",
+          "type": domains.get(domain,{}).get("type","A"),
           "comment": "Changed by "+(fernet.decrypt(str.encode(data['display-name']))).decode("utf-8") # a handy dandy lil message
         }
         headers = {
