@@ -273,7 +273,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
           }
           response = requests.post(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records",headers=headers,json=data_)
           if(response.status_code==200):
-            add_domain_to_user(true_domain=True,user=username,domain=domain,ip=ip,domain_id=(response.json().get("result").get("id")))
+            add_domain_to_user(true_domain=True,type=type,user=username,domain=domain,ip=ip,domain_id=(response.json().get("result").get("id")))
           return "OK", 200
         else:
           return 'Unauthorized', 401 # pal does NOT have the correct creds
