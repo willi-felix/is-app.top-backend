@@ -98,7 +98,6 @@ def user_exists(token: str=None, username: str=None) -> bool:
   Returns:
       bool: if the user exists
   """
-  print(token)
   cursor: Cursor
   results_found: list = []
   if(token == None and username == None):
@@ -413,4 +412,26 @@ def is_user_verified(token: str) -> tuple:
     if not verified:
       return 'Unauthorized',401
     return 'OK',200
+  
+  
+def delete_domain(token: str, domain: str) -> tuple:
+  username = parse_token(token)[1]
+  password = parse_token(token)[0]
+  if(username=="X"):
+    return 'Precondition Failed', 412
+  if (user_exists(token=token)): # if the user actually exists? theres a weird bug that crashes the server if user doesn't exist
+    data = get_data(username=username)
+    domains: dict = data["domains"] # dict of the domains that the user has
+    if password_is_correct(username=username,password=password): # correct creds
+      if(domain in domains): # user owns the domain
+        del domains[domain]
+        update_data(username=username,key="domains",value=domains)
+        return "OK",200
+      else:
+        return 'Forbidden', 403 # if user does not own the domain
+    else:
+      return 'Unauthorized', 401 # wrong creds :(
+  else:
+    return 'Not Found', 404 # user does not exist    
+    
 # thats it, finally!
