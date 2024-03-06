@@ -208,13 +208,15 @@ def is_domain_valid(domain: str) -> bool:
   valid = all(c in allowed for c in domain) # this *might* work, super hacky tho
   return valid
 
-def check_domain(domain: str) -> tuple: # if the domain is actually domainable! cloudflare will cry otherwise.
+def check_domain(domain: str, type: str = "A") -> tuple: # if the domain is actually domainable! cloudflare will cry otherwise.
   headers = {
     "X-Auth-Email": os.getenv("EMAIL"), 
     "Authorization": "Bearer "+os.getenv('CF_KEY_R') # cloudflare read token
   }
   if(is_domain_valid(domain)==False):
     return "Bad Request",400 # buddy, it aint a valid domain
+  if(type=="NS"):
+    return "OK",200
   response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
   if(response.json().get("result_info").get("total_count")==0): # if its ok and if the total count of records named that are 0.
     return "OK",200 # everything is fine! just register it already bruv
@@ -253,7 +255,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
   if(is_user_verified(token)[1]!=200):
     return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
   if(amount_of_domains <= data["permissions"].get("max_domains",3)): # if user's max domains are more than the current amount of domains
-    if(check_domain(domain)[1]==200 or type=="TXT" or type=="CNAME"): # If is a valid domain.
+    if(check_domain(domain,type)[1]==200 or type=="TXT" or type=="CNAME"): # If is a valid domain.
       if(user_exists(token=token)): # if user exists, check so we are not 'fucked'
         if password_is_correct(username=username,password=password): # correct creds
           headers = {
