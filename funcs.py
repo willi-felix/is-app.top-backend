@@ -313,7 +313,7 @@ def modify_domain(domain: str, token: str, new_ip: str) -> tuple:
           add_domain_to_user(user=username,domain=domain,ip=new_ip,domain_id=None)
         return "OK",200 # if its ok, then its ok!
       else:
-        return 'Forbidden', 403 # if user does not own the domain
+        return f'{data}', 403 # if user does not own the domain
     else: 
       return 'Unauthorized', 401 # wrong creds :(
   else:
