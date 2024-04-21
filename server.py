@@ -83,7 +83,8 @@ def change_domain():
   domain = request.json.get("domain")
   token = request.json.get("TOKEN")
   ip = request.json.get("ip")
-  return modify_domain(domain,token,ip)
+  type = request.json.get("recordtype")
+  return modify_domain(domain,token,ip,type)
 
 @app.route("/send-verification-code",methods=["POST"])
 def send_user_verification():
