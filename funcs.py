@@ -255,7 +255,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
   if(is_user_verified(token)[1]!=200):
     return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
   if(amount_of_domains <= data["permissions"].get("max_domains",3)): # if user's max domains are more than the current amount of domains
-    if(check_domain(domain,type)[1]==200 or type=="TXT" or type=="CNAME"): # If is a valid domain.
+    if(check_domain(domain,type)[1]==200 or type=="TXT"): # If is a valid domain.
       if(user_exists(token=token)): # if user exists, check so we are not 'fucked'
         if password_is_correct(username=username,password=password): # correct creds
           headers = {
@@ -294,6 +294,8 @@ def modify_domain(domain: str, token: str, new_ip: str, type: str="A") -> tuple:
     data = get_data(username=username)
     if password_is_correct(username=username,password=password): # correct creds
       domains: dict = data["domains"]
+      if(check_domain(domain,type)[1]==200 or type=="TXT"):
+        return "Unprocessable Entity",422
       if(domains.get(domain,False)!=False):
         fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8'))
         data_ = {
@@ -313,7 +315,7 @@ def modify_domain(domain: str, token: str, new_ip: str, type: str="A") -> tuple:
           add_domain_to_user(user=username,domain=domain,ip=new_ip,domain_id=None,type=type)
         return "OK",200 # if its ok, then its ok!
       else:
-        return f'{data}|{data.get(domain,False)}', 403 # if user does not own the domain
+        return f'No', 403 # if user does not own the domain
     else: 
       return 'Unauthorized', 401 # wrong creds :(
   else:
