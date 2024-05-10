@@ -255,7 +255,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
   except IndexError:
     return 'Not Found', 404
   if(type not in ["A","CNAME","TXT","NS"]):
-    return 'Method Not Allowed', 405 # The type is invalid.
+    return 'Invalid record type', 405 # The type is invalid.
   amount_of_domains: int = data["domains"].__len__() # the amount of domains the user has.
   if(is_user_verified(token)[1]!=200):
     return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
@@ -284,11 +284,11 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
         else:
           return 'Unauthorized', 401 # pal does NOT have the correct creds
       else:
-        return 'Not Found', 404 # user does not exist???? 
+        return 'User does not exist', 404 # user does not exist???? 
     else:
-      return 'Conflict', 409 # it aint a valid domain mate
+      return 'Not a valid domain', 409 # it aint a valid domain mate
   else: 
-    return f'Method Not Allowed', 405 # if the user is trying to make more domains than they are allowed to.
+    return f'Domain limit exceeded', 405 # if the user is trying to make more domains than they are allowed to.
 
 def modify_domain(domain: str, token: str, new_ip: str, type_:str) -> tuple:
   username = parse_token(token)[1]
