@@ -255,7 +255,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
   except IndexError:
     return 'Not Found', 404
   if(type not in ["A","CNAME","TXT","NS"]):
-    return 'Invalid record type', 405 # The type is invalid.
+    return f'Invalid record type {type}', 405 # The type is invalid.
   amount_of_domains: int = data["domains"].__len__() # the amount of domains the user has.
   if(is_user_verified(token)[1]!=200):
     return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
