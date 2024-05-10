@@ -165,7 +165,7 @@ def load_user(token: str) -> tuple: # 'load_user' is such a terrible name
     username: str = parse_token(token)[1]
     if(username=="X"):
       return "Unathorized",401
-    if(is_user_verified(token)!="OK",200):
+    if(is_user_verified(token)[1]!=200):
       return "Expectation Failed",417 # user is not verified
     user_logged_in(username) # make the user's "last logged in" to the current date
     return "OK",200 # what? ig the token is valid?
