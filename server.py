@@ -98,7 +98,10 @@ def verify_email_code():
 @app.route("/get-domains", methods=["POST"])
 def get_domain_list():
   token = request.json.get("TOKEN")
-  return get_user_domains(token)
+  result = get_user_domains(token)
+  if(result[1]==200):
+    return result[0]
+  return result
 
 @app.route("/is-verified", methods=["POST"])
 def check_verified():

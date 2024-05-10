@@ -337,7 +337,7 @@ def get_user_domains(token: str) -> tuple:
     
     if password_is_correct(username=username,password=password): # correct creds
       if(data.get("domains",[]).__len__()!=0): # if they own a domain
-          return data["domains"] # return the domains that the user owns.
+          return data["domains"],200 # return the domains that the user owns.
       else:
         return "Not Found",404 # Ig im using dicts now,,,
     else:
