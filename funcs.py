@@ -290,7 +290,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
   else: 
     return f'Method Not Allowed', 405 # if the user is trying to make more domains than they are allowed to.
 
-def modify_domain(domain: str, token: str, new_ip: str, type: str="A") -> tuple:
+def modify_domain(domain: str, token: str, new_ip: str, type:str) -> tuple:
   username = parse_token(token)[1]
   password = parse_token(token)[0]
   if(username=="X"):
@@ -307,7 +307,7 @@ def modify_domain(domain: str, token: str, new_ip: str, type: str="A") -> tuple:
           "content": new_ip,
           "name": domain+".frii.site",
           "proxied": False,
-          "type": domains.get(domain,{}).get("type",type), # from Dan: i added the type so you can add more records lol
+          "type": type, # from Dan: i added the type so you can add more records lol
           "comment": "Changed by "+(fernet.decrypt(str.encode(data['display-name']))).decode("utf-8") # a handy dandy lil message
         }
         headers = {
