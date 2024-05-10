@@ -35,10 +35,8 @@ def login():
   if(token==None):
     return 'Bad Request', 400
   return_status = load_user(token)
-  if return_status != False:
-    return "OK",200
-  else:
-    return 'Unauthorized', 401
+  return return_status
+
 
 @app.route('/sign-up', methods=['POST'])
 def sign_up():
