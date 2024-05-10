@@ -290,7 +290,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
   else: 
     return f'Method Not Allowed', 405 # if the user is trying to make more domains than they are allowed to.
 
-def modify_domain(domain: str, token: str, new_ip: str, type:str) -> tuple:
+def modify_domain(domain: str, token: str, new_ip: str, type_:str) -> tuple:
   username = parse_token(token)[1]
   password = parse_token(token)[0]
   if(username=="X"):
@@ -299,7 +299,7 @@ def modify_domain(domain: str, token: str, new_ip: str, type:str) -> tuple:
     data = get_data(username=username)
     if password_is_correct(username=username,password=password): # correct creds
       domains: dict = data["domains"]
-      if(check_domain(domain,type)[1]==200 or type=="TXT"):
+      if(check_domain(domain,type_)[1]==200 or type=="TXT"):
         return "Unprocessable Entity",422
       if(domains.get(domain,False)!=False):
         fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8'))
@@ -307,7 +307,7 @@ def modify_domain(domain: str, token: str, new_ip: str, type:str) -> tuple:
           "content": new_ip,
           "name": domain+".frii.site",
           "proxied": False,
-          "type": type, # from Dan: i added the type so you can add more records lol
+          "type": type_, # from Dan: i added the type so you can add more records lol
           "comment": "Changed by "+(fernet.decrypt(str.encode(data['display-name']))).decode("utf-8") # a handy dandy lil message
         }
         headers = {
@@ -317,7 +317,7 @@ def modify_domain(domain: str, token: str, new_ip: str, type:str) -> tuple:
         }
         response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records/{data['domains'][domain]['id']}",json=data_,headers=headers)
         if(response.status_code==200):
-          add_domain_to_user(user=username,domain=domain,ip=new_ip,domain_id=None,type=type)
+          add_domain_to_user(user=username,domain=domain,ip=new_ip,domain_id=None,type=type_)
         return "OK",200 # if its ok, then its ok!
       else:
         return f'No', 403 # if user does not own the domain
