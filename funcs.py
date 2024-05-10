@@ -24,6 +24,9 @@ cluster: MongoClient = MongoClient(os.getenv("MONGODB_URL"))
 db: Database = cluster["database"]
 collection: Collection = db["frii.site"]
 
+def username_password_to_token(username:str, password:str) -> str:
+  return f"{sha256(password)}|{sha256(username)}"
+
 def generate_password(length: int) -> str:
   """
   Returns a random password THAT ISNT ENCRYPTED.
@@ -153,7 +156,7 @@ def load_token(token):
   else:
     return False
 
-def load_user(token: str) -> bool: # 'load_user' is such a terrible name
+def load_user(token: str) -> tuple: # 'load_user' is such a terrible name
   """ 
   Checks if token is valid.
   """
@@ -161,10 +164,12 @@ def load_user(token: str) -> bool: # 'load_user' is such a terrible name
   if load_token(token=token):
     username: str = parse_token(token)[1]
     if(username=="X"):
-      return False
+      return "Unathorized",401
+    if(is_user_verified(token)!="OK",200):
+      return "Expectation Failed",417 # user is not verified
     user_logged_in(username) # make the user's "last logged in" to the current date
-    return True # what? ig the token is valid?
-  return False # what? ig the token is invalid?
+    return "OK",200 # what? ig the token is valid?
+  return "Not Found",404 # what? ig the token is invalid?
   
 def get_user_data(token: str): # kys if you abuse this! <3 I wrote the whole account system in a day, don't blame me for the horrible security
   """
