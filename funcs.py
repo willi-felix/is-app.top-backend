@@ -327,7 +327,7 @@ def modify_domain(domain: str, token: str, new_ip: str, type_:str) -> tuple:
   else:
     return 'Not Found', 404 # the user does not exist !!1!1!1 what the fuck
   
-def get_user_domains(token: str) -> dict: 
+def get_user_domains(token: str) -> tuple: 
   username = parse_token(token)[1]
   password = parse_token(token)[0]
   if(username=="X"):
@@ -339,11 +339,11 @@ def get_user_domains(token: str) -> dict:
       if(data.get("domains",[]).__len__()!=0): # if they own a domain
           return data["domains"] # return the domains that the user owns.
       else:
-        return {"Status": 404, "Description": "User has no domains"} # Ig im using dicts now,,,
+        return "Not Found",404 # Ig im using dicts now,,,
     else:
-      return {"Status": 401, "Description":"Invalid login."}
+      return "Unauthorized",401
   else:
-    return {"Status": 404, "Description": "User does not exist?"} # The user *somehow* doesn't exist??
+    return "Precondition Failed",412 # The user *somehow* doesn't exist??
 
 def send_verify_email(token: str) -> tuple:
   global verif_codes
