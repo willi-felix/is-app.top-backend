@@ -72,8 +72,8 @@ def register_domain():
   domain = request.json.get("domain")
   token = request.json.get("TOKEN")
   ip = request.json.get("ip")
-  type = request.json.get("type")
-  return give_domain(domain=domain,ip=ip,token=token,type=type)
+  type_ = request.json.get("type")
+  return give_domain(domain=domain,ip=ip,token=token,type=type_)
 
 @app.route("/modify-domain",methods=["POST"])
 @limiter.rate_limit(limit=12,period=10*60)
