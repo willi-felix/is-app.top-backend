@@ -271,7 +271,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
           fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8')) # init fernet n shi
           data_ = {
             "content": ip,
-            "name": domain+'.frii.site', # because 'domain' is *only* the subdomain (example.frii.site->example)
+            "name": domain, # because 'domain' is *only* the subdomain (example.frii.site->example)
             "proxied": False, # so cloudflare doesn't proxy the content
             "type": type.strip(), # the type of the record.
             "comment": "Issued by "+(fernet.decrypt(str.encode(data["display-name"]))).decode("utf-8"), # just a handy-dandy lil feature that shows the admin (me) who registered the domain
@@ -305,7 +305,7 @@ def modify_domain(domain: str, token: str, new_ip: str, type_:str) -> tuple:
         fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8'))
         data_ = {
           "content": new_ip,
-          "name": domain+".frii.site",
+          "name": domain ,
           "proxied": False,
           "type": type_, # from Dan: i added the type so you can add more records lol
           "comment": "Changed by "+(fernet.decrypt(str.encode(data['display-name']))).decode("utf-8") # a handy dandy lil message
