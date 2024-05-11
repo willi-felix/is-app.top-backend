@@ -118,7 +118,7 @@ def create_user(username: str, password: str, email: str, language: str, country
   """
   Creates an user.
   """
-  
+  original_username=username
   username = str(sha256(username.encode("utf-8")).hexdigest()) # the token is just the username hashed
                                                             # seems like a bad ideea, but dont worry! we'll
                                                             # change it at some point. and ohh actually, it isnt'
@@ -143,7 +143,7 @@ def create_user(username: str, password: str, email: str, language: str, country
     data["verified"] = False # the user has not verified their email
     data["domains"] = {} # the domains they have
     save_data(data) # Saves that data
-    send_verify_email(email,username)
+    send_verify_email(email,username,original_username)
     return True
 
 def load_token(token):
@@ -346,7 +346,7 @@ def get_user_domains(token: str) -> tuple:
   else:
     return "Precondition Failed",412 # The user *somehow* doesn't exist??
 
-def send_verify_email(email: str,username:str) -> tuple:
+def send_verify_email(email: str,username:str, displayname:str) -> tuple:
   global verif_codes
   """
   Send a verification code to user.
@@ -366,7 +366,7 @@ def send_verify_email(email: str,username:str) -> tuple:
     "to": email, # who the email should be sent to
     "subject": "Verify your account",
     "html": 
-    '<html><link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div class="holder"> <h1>Hello $username!</h1> <h2>Click <a href="https://server.frii.site/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 5 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://server.frii.site/verification/$code</div></html><style> html { background-color: rgb(225,225,225); } .holder { background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto; } *{font-family:"Inter",sans-serif}</style>'.replace("$username",username).replace("$code",random_pin)
+    '<html><link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div class="holder"> <h1>Hello $username!</h1> <h2>Click <a href="https://server.frii.site/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 5 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://server.frii.site/verification/$code</div></html><style> html { background-color: rgb(225,225,225); } .holder { background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto; } *{font-family:"Inter",sans-serif}</style>'.replace("$username",displayname).replace("$code",random_pin)
 
     # TODO make it more beautiful.
     }) 
