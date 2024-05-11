@@ -374,12 +374,12 @@ def send_verify_email(email: str,username:str, displayname:str) -> tuple:
   return 'OK',200 # the email got sent? idk what resend.Emails.send returns if it's unsuccesful, because it isnt documented (as of 2.3.2024 ddmmyyyy)
 
   
-def verify_email(code: str) -> tuple:
-  if(code not in verif_codes): return "Not Found",404
-  if not round(time.time()) < verif_codes[code]["expire"]: return "Unauthorized", 401
+def verify_email(code: str) -> bool:
+  if(code not in verif_codes): return False
+  if not round(time.time()) < verif_codes[code]["expire"]: return False
   update_data(username=verif_codes[code]["account"],key="verified",value=True)
   del verif_codes[code]
-  return 'OK', 200
+  return True
   
 def is_user_verified(token: str) -> tuple:
   username = parse_token(token)[1]

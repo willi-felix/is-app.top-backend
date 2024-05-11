@@ -1,5 +1,6 @@
 from flask import Flask, request, jsonify
-from flask import request
+from flask import request, render_template
+
 from funcs import *
 import ipinfo
 import os 
@@ -82,7 +83,12 @@ def change_domain():
 
 @app.route("/verification/<string:Code>", methods=["GET"])
 def verify_account(Code):
-  return verify_email(Code)
+  status="Failed to verify"
+  stauts_description="Something went wrong while verifying. Either the verification code has expired, or you are already verified."
+  if(verify_email(Code)==True):
+    status="Succesfully verified!"
+    stauts_description="Your account has succesfully been verified. Feel free to close this window and log in."
+  return render_template("verify.html",status=status,status_message=stauts_description)
 
 
 @app.route("/get-domains", methods=["POST"])
