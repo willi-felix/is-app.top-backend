@@ -25,7 +25,7 @@ db: Database = cluster["database"]
 collection: Collection = db["frii.site"]
 
 def username_password_to_token(username:str, password:str) -> str:
-  return f"{sha256(password.encode("utf-8"))}|{sha256(username.encode("utf-8"))}"
+  return f"{str(sha256(password.encode("utf-8")))}|{str(sha256(username.encode("utf-8")))}"
 
 def generate_password(length: int) -> str:
   """
