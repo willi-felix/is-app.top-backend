@@ -20,15 +20,6 @@ limiter = RateLimiter(app)
 CORS(app)
 handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
 
-@app.route("/")
-@cross_origin()
-def index():
-  elements: str = "<!DOCTYPE html> <body style='display: inline;'><div style='display: grid;'>"
-  for url in app.url_map.iter_rules():
-    elements+=f"<a href={url}>{url}</a>"
-    
-  elements+="</div></body>"
-  return elements,200
 @app.route('/login', methods=['POST'])
 def login():
   token = request.json.get('TOKEN')
@@ -84,16 +75,10 @@ def change_domain():
   type_ = request.json.get("type")
   return modify_domain(domain,token,ip,type_)
 
-@app.route("/send-verification-code",methods=["POST"])
-def send_user_verification():
-  token = request.json.get("TOKEN")
-  return send_verify_email(token)
+@app.route("/verification/<String:Code>", methods=["GET"])
+def verify_account(Code):
+  return verify_email(Code)
 
-@app.route("/verify-emailcode", methods=["POST"])
-def verify_email_code():
-  token = request.json.get("TOKEN")
-  code = request.json.get("code")
-  return verify_email(token=token,code=code)
 
 @app.route("/get-domains", methods=["POST"])
 def get_domain_list():
