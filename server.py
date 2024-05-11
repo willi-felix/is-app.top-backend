@@ -21,7 +21,7 @@ CORS(app)
 handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
 
 @app.route("/")
-@cross_origin
+@cross_origin()
 def index():
   return "OK",200
 
