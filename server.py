@@ -20,6 +20,10 @@ limiter = RateLimiter(app)
 CORS(app)
 handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
 
+@app.route("/")
+@cross_origin
+def index():
+  return "OK",200
 @app.route('/login', methods=['POST'])
 def login():
   token = request.json.get('TOKEN')
