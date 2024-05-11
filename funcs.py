@@ -143,7 +143,7 @@ def create_user(username: str, password: str, email: str, language: str, country
     data["verified"] = False # the user has not verified their email
     data["domains"] = {} # the domains they have
     save_data(data) # Saves that data
-    send_verify_email(username_password_to_token(username,password))
+    send_verify_email(email,username)
     return True
 
 def load_token(token):
@@ -346,7 +346,7 @@ def get_user_domains(token: str) -> tuple:
   else:
     return "Precondition Failed",412 # The user *somehow* doesn't exist??
 
-def send_verify_email(token: str) -> tuple:
+def send_verify_email(email: str,username:str) -> tuple:
   global verif_codes
   """
   Send a verification code to user.
@@ -357,34 +357,22 @@ def send_verify_email(token: str) -> tuple:
   Returns:
       HTTP status code if the email got sent.
   """
-  username = parse_token(token)[1]
-  password = parse_token(token)[0]
-  if(username=="X"):
-    return 'Precondition Failed', 412
-  data = get_data(username=username)
-  fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8')) # The hashing engine
-  if(data["verified"]==False):
-    if password_is_correct(username=username,password=password): # correct creds
-      email = (fernet.decrypt(str.encode(data["email"]))).decode("utf-8") # decrypt the email
-      random_pin = generate_random_pin(64)
-      verif_codes[random_pin] = {}
-      verif_codes[random_pin]["account"]=username
-      verif_codes[random_pin]["expire"]=time.time()+5*60
-      r = resend.Emails.send({ # for some reason this email *always* goes to spam, so someone should warn the user lol
-        "from": 'send@frii.site', # do not change this. 
-        "to": email, # who the email should be sent to
-        "subject": "Verify your account",
-        "html": 
-        '<html><link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div class="holder"> <h1>Hello $username!</h1> <h2>Click <a href="https://server.frii.site/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 5 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://server.frii.site/verification/$code</div></html><style> html { background-color: rgb(225,225,225); } .holder { background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto; } *{font-family:"Inter",sans-serif}</style>'.replace("$username",username).replace("$code",random_pin)
+  random_pin = generate_random_pin(64)
+  verif_codes[random_pin] = {}
+  verif_codes[random_pin]["account"]=username
+  verif_codes[random_pin]["expire"]=time.time()+5*60
+  r = resend.Emails.send({ # for some reason this email *always* goes to spam, so someone should warn the user lol
+    "from": 'send@frii.site', # do not change this. 
+    "to": email, # who the email should be sent to
+    "subject": "Verify your account",
+    "html": 
+    '<html><link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div class="holder"> <h1>Hello $username!</h1> <h2>Click <a href="https://server.frii.site/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 5 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://server.frii.site/verification/$code</div></html><style> html { background-color: rgb(225,225,225); } .holder { background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto; } *{font-family:"Inter",sans-serif}</style>'.replace("$username",username).replace("$code",random_pin)
 
-        # TODO make it more beautiful.
-      })
-      random_pin = None
-      return 'OK',200 # the email got sent? idk what resend.Emails.send returns if it's unsuccesful, because it isnt documented (as of 2.3.2024 ddmmyyyy)
-    else:
-      return 'Unauthorized', 401 # wrong passowrd mate
-  else:
-    return 'Conflict',409 # user is already verified
+    # TODO make it more beautiful.
+    }) 
+  random_pin = None
+  return 'OK',200 # the email got sent? idk what resend.Emails.send returns if it's unsuccesful, because it isnt documented (as of 2.3.2024 ddmmyyyy)
+
   
 def verify_email(code: str) -> tuple:
   if(code not in verif_codes): return "Not Found",404
