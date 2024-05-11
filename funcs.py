@@ -376,7 +376,7 @@ def send_verify_email(email: str,username:str) -> tuple:
   
 def verify_email(code: str) -> tuple:
   if(code not in verif_codes): return "Not Found",404
-  if not round(time.time()) < verif_codes[code]["expires"]: return "Unauthorized", 401
+  if not round(time.time()) < verif_codes[code]["expire"]: return "Unauthorized", 401
   update_data(username=verif_codes[code]["account"],key="verified",value=True)
   del verif_codes[code]
   return 'OK', 200
