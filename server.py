@@ -24,6 +24,7 @@ handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
 @cross_origin
 def index():
   return "OK",200
+
 @app.route('/login', methods=['POST'])
 def login():
   token = request.json.get('TOKEN')
@@ -79,7 +80,7 @@ def change_domain():
   type_ = request.json.get("type")
   return modify_domain(domain,token,ip,type_)
 
-@app.route("/verification/<String:Code>", methods=["GET"])
+@app.route("/verification/<string:Code>", methods=["GET"])
 def verify_account(Code):
   return verify_email(Code)
 
