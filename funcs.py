@@ -453,7 +453,7 @@ def send_delete_email(token:str)-> tuple:
   if not (password_is_correct(username=username,password=password)):
     return "Unauthorized",401
   data = get_user_data(token=token)
-  send_delete_email(data["email"],username,data["username"])
+  send_delete_email(username)
   
 def delete_user(code:str) -> tuple:
   if (code not in del_codes): return "No email",404
