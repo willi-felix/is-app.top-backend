@@ -459,12 +459,10 @@ def initiate_account_deletion(token:str)-> tuple:
 def delete_user(code:str) -> tuple:
   if (code not in del_codes): return "No email",404
   if not round(time.time()) < del_codes[code]["expire"]: return False
-  domain_data = get_user_domains(del_codes[code]["auth-token"])
-  if(domain_data[1]!=200):
-    return "Failed to fetch domains",domain_data[1]
-  domains=domain_data[0]
-  domains:dict = get_user_domains(del_codes[code]["auth-token"])
-  for domain in domains:
-    delete_domain(del_codes[code]["auth-token"],list(domain.keys())[0])
+  domains = get_user_domains(del_codes[code]["auth-token"])
+  if(domains[1]!=200):
+    return "Failed to fetch domains",domains[1]
+  for domain in domains[0]:
+    delete_domain(del_codes[code]["auth-token"],domain)
   delete_user_from_db(parse_token(del_codes[code]["auth-token"])[1])
   return "OK",200
