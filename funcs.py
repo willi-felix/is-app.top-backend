@@ -76,7 +76,7 @@ def update_data(username: str, key: str, value: any) -> None:
   )
 
 def delete_user_from_db(username:str) -> bool:
-  collection.delete_one({"_id",username})
+  collection.delete_one({"_id":username})
   return True
 
 def get_data(username: str, only_first_one=True) -> dict:
