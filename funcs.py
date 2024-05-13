@@ -454,7 +454,8 @@ def initiate_account_deletion(token:str)-> tuple:
     return "Unauthorized",401
   data = get_user_data(token=token)
   send_delete_email(data["email"],username,data["username"])
-  
+  return "OK",200
+
 def delete_user(code:str) -> tuple:
   if (code not in del_codes): return "No email",404
   if not round(time.time()) < del_codes[code]["expire"]: return False
