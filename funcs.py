@@ -346,7 +346,7 @@ def get_user_domains(token: str) -> tuple:
   else:
     return "Precondition Failed",412 # The user *somehow* doesn't exist??
 
-def send_delete_email(email:str,username:str,displayname:str) -> bool:
+def send_delete_email(email:str,username:str,displayname:str) -> tuple:
   global del_codes
   random_pin = generate_random_pin(256)
   del_codes[random_pin] = {}
@@ -358,7 +358,7 @@ def send_delete_email(email:str,username:str,displayname:str) -> bool:
     "subject": "Confirm your account deletion",
     "html": '<html><link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div class="holder"> <h1>Hello $username.</h1> <h2>Click <a href="https://server.frii.site/account-deletion/$code">here</a> to confirm the deletion of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 30 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://server.frii.site/account-deletion/$code</div></html><style> html { background-color: rgb(225,225,225); } .holder { background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto; } *{font-family:"Inter",sans-serif}</style>'
   })
-  return True
+  return "OK",200
 def send_verify_email(email: str,username:str, displayname:str) -> tuple:
   global verif_codes
 
