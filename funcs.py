@@ -453,7 +453,7 @@ def initiate_account_deletion(token:str)-> tuple:
   if not (password_is_correct(username=username,password=password)):
     return "Unauthorized",401
   data = get_user_data(token=token)
-  send_delete_email(data["email"],username,data["username"])
+  send_delete_email(data["email"],token,data["username"])
   return "OK",200
 
 def delete_user(code:str) -> tuple:
@@ -461,7 +461,7 @@ def delete_user(code:str) -> tuple:
   if not round(time.time()) < del_codes[code]["expire"]: return False
   domain_data = get_user_domains(del_codes[code]["auth-token"])
   if(domain_data[1]!=200):
-    return "Failed to fetch domains "+del_codes[code]["auth-token"],domain_data[1]
+    return "Failed to fetch domains",domain_data[1]
   domains=domain_data[0]
   domains:dict = get_user_domains(del_codes[code]["auth-token"])
   for domain,_ in domains:
