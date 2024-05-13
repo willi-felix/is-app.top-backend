@@ -461,7 +461,7 @@ def delete_user(code:str) -> tuple:
   if not round(time.time()) < del_codes[code]["expire"]: return False
   domain_data = get_user_domains(del_codes[code]["auth-token"])
   if(domain_data[1]!=200):
-    return "Failed to fetch domains",500
+    return "Failed to fetch domains",domain_data[1]
   domains=domain_data[0]
   domains:dict = get_user_domains(del_codes[code]["auth-token"])
   for domain,_ in domains:
