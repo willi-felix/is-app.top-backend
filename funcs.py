@@ -443,7 +443,7 @@ def delete_domain(token: str, domain: str) -> tuple:
     return 'Not Found', 404 # user does not exist    
 
     
-def send_delete_email(token:str)-> tuple:
+def initiate_account_deletion(token:str)-> tuple:
   username = parse_token(token)[1]
   password = parse_token(token)[0]
   if(username=="X"):
@@ -453,7 +453,7 @@ def send_delete_email(token:str)-> tuple:
   if not (password_is_correct(username=username,password=password)):
     return "Unauthorized",401
   data = get_user_data(token=token)
-  send_delete_email(username)
+  send_delete_email(data["email"],username,data["username"])
   
 def delete_user(code:str) -> tuple:
   if (code not in del_codes): return "No email",404

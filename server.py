@@ -113,7 +113,7 @@ def del_domain():
 @app.route("/delete-user",methods=["POST"])
 def send_del_user():
   token = request.json.get("TOKEN")
-  return send_delete_email(token)
+  return initiate_account_deletion(token)
 
 @app.route("/account-deletion/<string:Code>")
 def del_user(Code):
