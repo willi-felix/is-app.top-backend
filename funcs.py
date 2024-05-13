@@ -17,7 +17,7 @@ from pymongo.database import Database
 from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 verif_codes: dict = {}
-
+del_codes: dict = {}
 load_dotenv()
 resend.api_key = os.getenv("RESEND_KEY")
 cluster: MongoClient = MongoClient(os.getenv("MONGODB_URL"))
@@ -346,8 +346,22 @@ def get_user_domains(token: str) -> tuple:
   else:
     return "Precondition Failed",412 # The user *somehow* doesn't exist??
 
+def send_delete_email(email:str,username:str,displayname:str) -> bool:
+  global del_codes
+  random_pin = generate_random_pin(256)
+  del_codes[random_pin] = {}
+  del_codes[random_pin]["account"]=username
+  del_codes[random_pin]["expire"] = time.time()+30*60
+  r = resend.Emails.send({
+    "from":"send@frii.site",
+    "to": email,
+    "subject": "Confirm your account deletion",
+    "html": '<html><link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div class="holder"> <h1>Hello $username.</h1> <h2>Click <a href="https://server.frii.site/account-deletion/$code">here</a> to confirm the deletion of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 30 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://server.frii.site/account-deletion/$code</div></html><style> html { background-color: rgb(225,225,225); } .holder { background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto; } *{font-family:"Inter",sans-serif}</style>'
+  })
+  return True
 def send_verify_email(email: str,username:str, displayname:str) -> tuple:
   global verif_codes
+
   """
   Send a verification code to user.
 
@@ -424,4 +438,15 @@ def delete_domain(token: str, domain: str) -> tuple:
   else:
     return 'Not Found', 404 # user does not exist    
     
+def delete_user(token:str)-> tuple:
+  username = parse_token(token)[1]
+  password = parse_token(token)[0]
+  if(username=="X"):
+    return 'Precondition Failed', 412
+  if not (user_exists(token=token)):
+    return "User does not exist",404
+  if not (password_is_correct(username=username,password=password)):
+    return "Unauthorized",401
+  data = get_user_data(username=username)
+  send_delete_email(data["email"],username,data["username"])
 # thats it, finally!
