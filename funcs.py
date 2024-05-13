@@ -447,6 +447,6 @@ def delete_user(token:str)-> tuple:
     return "User does not exist",404
   if not (password_is_correct(username=username,password=password)):
     return "Unauthorized",401
-  data = get_user_data(username=username)
+  data = get_user_data(token=token)
   send_delete_email(data["email"],username,data["username"])
 # thats it, finally!
