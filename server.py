@@ -113,7 +113,7 @@ def del_domain():
 @app.route("/delete-user",methods=["POST"])
 def del_user():
   token = request.json.get("TOKEN")
-  return delete_user()
+  return delete_user(token)
 
 if(__name__=="__main__"):
   app.run(host='0.0.0.0', port=5000)
