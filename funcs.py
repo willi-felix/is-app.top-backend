@@ -460,7 +460,7 @@ def delete_user(code:str) -> tuple:
   if (code not in del_codes): return "No email",404
   if not round(time.time()) < del_codes[code]["expire"]: return False
   domains = get_user_domains(del_codes[code]["auth-token"])
-  if(domains[1]!=200 or domains[1]!=404):
+  if(domains[1] not in [200,404]):
     return "Failed to fetch domains",domains[1]
   if(domains[1]!=404):
     for domain in domains[0]:
