@@ -464,7 +464,7 @@ def delete_user(code:str) -> tuple:
     return "Failed to fetch domains",domain_data[1]
   domains=domain_data[0]
   domains:dict = get_user_domains(del_codes[code]["auth-token"])
-  for domain,_ in domains:
+  for domain in domains:
     delete_domain(del_codes[code]["auth-token"],domain)
   delete_user_from_db(parse_token(del_codes[code]["auth-token"])[1])
   return "OK",200
