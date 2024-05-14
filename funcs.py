@@ -150,6 +150,14 @@ def create_user(username: str, password: str, email: str, language: str, country
     send_verify_email(email,username,original_username)
     return True
 
+
+def load_whole_user(token:str):
+  username = parse_token(token)[1]
+  password = parse_token(token)[0]
+  if(password_is_correct(username,password)):
+    return get_data(username)
+  return False
+
 def load_token(token):
   """
   Checks if username + passwords are correcct

@@ -90,6 +90,15 @@ def verify_account(Code):
     stauts_description="Your account has succesfully been verified. Feel free to close this window and log in."
   return render_template("verify.html",status=status,status_message=stauts_description)
 
+@app.route("/gpdr-get",methods=["POST"])
+def gpdr():
+  token=request.json.get("TOKEN")
+  c=load_whole_user(token)
+  if(c!=False):
+    return "Unauthorized",403
+  return c,200
+    
+
 @app.route("/get-user-info",methods=["POST"])
 def user_info():
   token = request.json.get("TOKEN")
