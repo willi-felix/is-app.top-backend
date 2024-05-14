@@ -90,6 +90,16 @@ def verify_account(Code):
     stauts_description="Your account has succesfully been verified. Feel free to close this window and log in."
   return render_template("verify.html",status=status,status_message=stauts_description)
 
+@app.route("/get-user-info",methods=["POST"])
+def user_info():
+  token = request.json.get("TOKEN")
+  answer = get_user_data(token)
+  if(type(answer)!=dict):
+    return answer,200
+  elif(type(answer)==int):
+    return "Failed to gather data",answer
+  else:
+    return "Error",400
 
 @app.route("/get-domains", methods=["POST"])
 def get_domain_list():
