@@ -154,9 +154,8 @@ def create_user(username: str, password: str, email: str, language: str, country
 def load_whole_user(token:str):
   username = parse_token(token)[1]
   password = parse_token(token)[0]
-  if(password_is_correct(username,password)):
-    return get_data(username)
-  return False
+  if(password_is_correct(username,password)): return get_data(username)
+  else: return False
 
 def load_token(token):
   """

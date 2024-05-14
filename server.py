@@ -94,8 +94,8 @@ def verify_account(Code):
 def gpdr():
   token=request.json.get("TOKEN")
   c=load_whole_user(token)
-  if(c!=False):
-    return "Unauthorized",403
+  if(c==False):
+    return "Forbhidden",403
   return c,200
     
 
