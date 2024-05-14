@@ -99,7 +99,7 @@ def user_info():
   elif(type(answer)==int):
     return "Failed to gather data",answer
   else:
-    return "Error",400
+    return str(answer),400
 
 @app.route("/get-domains", methods=["POST"])
 def get_domain_list():
