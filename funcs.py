@@ -91,8 +91,7 @@ def get_data(username: str, only_first_one=True) -> dict:
     results_found.append(result)
   if(results_found.__len__()!=0):
     if(only_first_one):
-      a=results_found[0]
-      return {"user_id":a["_id"],"location":a["country"],"creation_date":a["created"],"domains":a["domains"],"lang":a["lang"],"last_login":a["last-login"],"permissions":a["permissions"],"verified":a["verified"]}
+      return results_found[0]
     return result
   
   else:
@@ -161,7 +160,9 @@ def load_whole_user(token:str):
   username = parse_token(token)[1]
   password = parse_token(token)[0]
   sorted_data:dict={}
-  if(password_is_correct(username,password)): return get_data(username)
+  if(password_is_correct(username,password)): 
+    a=get_data(username)
+    return {"user_id":a["_id"],"location":a["country"],"creation_date":a["created"],"domains":a["domains"],"lang":a["lang"],"last_login":a["last-login"],"permissions":a["permissions"],"verified":a["verified"]}
   else: return False
 
 def load_token(token):
