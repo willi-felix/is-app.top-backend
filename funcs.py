@@ -80,6 +80,10 @@ def delete_user_from_db(username:str) -> bool:
   return True
 
 def get_data(username: str, only_first_one=True) -> dict:
+  """
+  WARNING
+  DOESNT ACTUALLY PROVIDE ALL DATA
+  """
   cursor: Cursor
   results_found: list = []
   cursor = collection.find({"_id":username})
@@ -87,8 +91,10 @@ def get_data(username: str, only_first_one=True) -> dict:
     results_found.append(result)
   if(results_found.__len__()!=0):
     if(only_first_one):
-      return results_found[0]
+      a=only_first_one[0]
+      return {"user_id":a["_id"],"location":a["country"],"creation_date":a["created"],"domains":a["domains"],"lang":a["lang"],"last_login":a["last-login"],"permissions":a["permissions"],"verified":a["verified"]}
     return result
+  
   else:
     raise IndexError("No matches for username.")
   
@@ -154,6 +160,7 @@ def create_user(username: str, password: str, email: str, language: str, country
 def load_whole_user(token:str):
   username = parse_token(token)[1]
   password = parse_token(token)[0]
+  sorted_data:dict={}
   if(password_is_correct(username,password)): return get_data(username)
   else: return False
 
