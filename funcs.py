@@ -91,7 +91,7 @@ def get_data(username: str, only_first_one=True) -> dict:
     results_found.append(result)
   if(results_found.__len__()!=0):
     if(only_first_one):
-      a=only_first_one[0]
+      a=results_found[0]
       return {"user_id":a["_id"],"location":a["country"],"creation_date":a["created"],"domains":a["domains"],"lang":a["lang"],"last_login":a["last-login"],"permissions":a["permissions"],"verified":a["verified"]}
     return result
   
