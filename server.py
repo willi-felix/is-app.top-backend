@@ -103,12 +103,10 @@ def gpdr():
 def user_info():
   token = request.json.get("TOKEN")
   answer = get_user_data(token)
-  if(type(answer)!=dict):
+  if(type(answer)==dict):
     return answer,200
   elif(type(answer)==int):
     return "Failed to gather data",answer
-  else:
-    return str(answer),400
 
 @app.route("/get-domains", methods=["POST"])
 def get_domain_list():
