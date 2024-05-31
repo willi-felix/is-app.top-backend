@@ -289,6 +289,8 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
             "X-Auth-Email": os.getenv("EMAIL") # tbh: I have no idea if this is required.
           }
           fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8')) # init fernet n shi
+          if(type=="CNAME"): ip="example.com"
+          if(type=="NS"): ip="example.com"
           data_ = {
             "content": ip,
             "name": domain, # because 'domain' is *only* the subdomain (example.frii.site->example)
