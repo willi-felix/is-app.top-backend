@@ -251,7 +251,7 @@ def check_domain(domain: str, data:any, type: str = "A") -> tuple: # if the doma
         return "Unauthorized",452
     return "OK",200 
   response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
-  if(response.json().get("result_info").get("total_count")==0): # if its ok and if the total count of records named that are 0.
+  if(list(response.json().get("result",[])).__len__()==0):
     return "OK",200 # everything is fine! just register it already bruv
   return "Conflict",409 # I don't really know, just guessing lol
 
