@@ -250,10 +250,9 @@ def check_domain(domain: str, data:any, type: str = "A") -> tuple: # if the doma
       if(user_domain not in data["domains"]): 
         return "Unauthorized",452
     return "OK",200 
-  response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
-  if(list(response.json().get("result",[])).__len__()==0):
-    return "OK",200 # everything is fine! just register it already bruv
-  return "Conflict",409 # I don't really know, just guessing lol
+
+  "OK",200 # everything is fine! just register it already bruv
+
 
 def add_domain_to_user(user: str, domain: str, ip: str,  type: str=None, domain_id: str = None, true_domain: bool=None) -> bool:
   try:
@@ -289,6 +288,9 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
     return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
   if(amount_of_domains <= data["permissions"].get("max_domains",3)): # if user's max domains are more than the current amount of domains
     check_domain_response=check_domain(domain,data,type)[1]
+    response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
+    if(list(response.json().get("result",[])).__len__()==0):
+      return "Conflict",409
     if(check_domain_response==200 or type=="TXT"): # If is a valid domain.
       if(user_exists(token=token)): # if user exists, check so we are not 'fucked'
         if password_is_correct(username=username,password=password): # correct creds
