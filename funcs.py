@@ -248,7 +248,7 @@ def check_domain(domain: str, data:any, type: str = "A") -> tuple: # if the doma
       domain_parts:str = domain.split(".")
       user_domain=domain_parts[:-2]
       if(user_domain not in data["domains"]): 
-        return "Unauthorized",401
+        return "Unauthorized",452
     return "OK",200 
   response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
   if(response.json().get("result_info").get("total_count")==0): # if its ok and if the total count of records named that are 0.
