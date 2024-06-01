@@ -242,6 +242,8 @@ def check_domain(domain: str, type: str = "A") -> tuple: # if the domain is actu
     return "Bad Request",400 # buddy, it aint a valid domain
   if(type=="NS"):
     return "OK",200
+  if(type=="TXT"):
+    return "OK",200
   response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
   if(response.json().get("result_info").get("total_count")==0): # if its ok and if the total count of records named that are 0.
     return "OK",200 # everything is fine! just register it already bruv
