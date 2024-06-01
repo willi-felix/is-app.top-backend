@@ -249,9 +249,7 @@ def check_domain(domain: str, data:any, type: str = "A") -> tuple: # if the doma
       user_domain=domain_parts[:-2]
       if(user_domain not in data["domains"]): 
         return "Unauthorized",452
-    return "OK",200 
-
-  "OK",200 # everything is fine! just register it already bruv
+  return "OK",200 # everything is fine! just register it already bruv
 
 
 def add_domain_to_user(user: str, domain: str, ip: str,  type: str=None, domain_id: str = None, true_domain: bool=None) -> bool:
