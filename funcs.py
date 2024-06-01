@@ -238,12 +238,13 @@ def check_domain(domain: str, type: str = "A") -> tuple: # if the domain is actu
     "X-Auth-Email": os.getenv("EMAIL"), 
     "Authorization": "Bearer "+os.getenv('CF_KEY_R') # cloudflare read token
   }
+
   if(is_domain_valid(domain)==False):
     return "Bad Request",400 # buddy, it aint a valid domain
   if(type=="NS"):
     return "OK",200
   if(type=="TXT"):
-    return "OK",200
+    return "OK",200 
   response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
   if(response.json().get("result_info").get("total_count")==0): # if its ok and if the total count of records named that are 0.
     return "OK",200 # everything is fine! just register it already bruv
@@ -323,7 +324,7 @@ def modify_domain(domain: str, token: str, new_ip: str, type_:str) -> tuple:
     data = get_data(username=username)
     if password_is_correct(username=username,password=password): # correct creds
       domains: dict = data["domains"]
-      if(check_domain(domain,type_)[1]!=200 and type.lower()!="txt"):
+      if(check_domain(domain,type_)[1]!=200 and type_.lower()!="txt"):
         return "Unprocessable Entity",422
       if(domains.get(domain,False)!=False):
         fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8'))
