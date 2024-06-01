@@ -330,8 +330,9 @@ def modify_domain(domain: str, token: str, new_ip: str, type_:str) -> tuple:
     data = get_data(username=username)
     if password_is_correct(username=username,password=password): # correct creds
       domains: dict = data["domains"]
-      if(check_domain(domain,data,type_)[1]!=200 and type_.lower()!="txt"):
-        return "Unprocessable Entity",422
+      check_domain_status=check_domain(domain,data,type_)
+      if(check_domain_status[1]!=200 and type_.lower()!="txt"):
+        return check_domain_status[0],422
       if(domains.get(domain,False)!=False):
         fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8'))
         data_ = {
