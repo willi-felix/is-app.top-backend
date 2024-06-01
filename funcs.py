@@ -233,7 +233,7 @@ def is_domain_valid(domain: str) -> bool:
   valid = all(c in allowed for c in domain) # this *might* work, super hacky tho
   return valid
 
-def check_domain(domain: str, type: str = "A") -> tuple: # if the domain is actually domainable! cloudflare will cry otherwise.
+def check_domain(domain: str, data:any, type: str = "A") -> tuple: # if the domain is actually domainable! cloudflare will cry otherwise.
   headers = {
     "X-Auth-Email": os.getenv("EMAIL"), 
     "Authorization": "Bearer "+os.getenv('CF_KEY_R') # cloudflare read token
@@ -244,8 +244,11 @@ def check_domain(domain: str, type: str = "A") -> tuple: # if the domain is actu
   if(type=="NS"):
     return "OK",200
   if(type=="TXT"):
-    if("frii.site" in domain and ".frii.site" not in domain):
-      return "Theft protection",405
+    if("frii.site" in domain):
+      domain_parts:str = domain.split(".")
+      user_domain=domain_parts[:-2]
+      if(user_domain not in data["domains"]): 
+        return "Unauthorized",401
     return "OK",200 
   response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
   if(response.json().get("result_info").get("total_count")==0): # if its ok and if the total count of records named that are 0.
@@ -285,7 +288,8 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
   if(is_user_verified(token)[1]!=200):
     return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
   if(amount_of_domains <= data["permissions"].get("max_domains",3)): # if user's max domains are more than the current amount of domains
-    if(check_domain(domain,type)[1]==200 or type=="TXT"): # If is a valid domain.
+    check_domain_response=check_domain(domain,data,type)[1]
+    if(check_domain_response==200 or type=="TXT"): # If is a valid domain.
       if(user_exists(token=token)): # if user exists, check so we are not 'fucked'
         if password_is_correct(username=username,password=password): # correct creds
           headers = {
@@ -313,7 +317,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
       else:
         return 'User does not exist', 404 # user does not exist???? 
     else:
-      return 'Not a valid domain', 409 # it aint a valid domain mate
+      return 'Not a valid domain', check_domain_response # it aint a valid domain mate
   else: 
     return f'Domain limit exceeded', 405 # if the user is trying to make more domains than they are allowed to.
 
