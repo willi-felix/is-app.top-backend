@@ -292,7 +292,7 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
             "X-Auth-Email": os.getenv("EMAIL") # tbh: I have no idea if this is required.
           }
     response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
-    if(list(response.json().get("result",[])).__len__()==0):
+    if(list(response.json().get("result",[])).__len__()!=0):
       return "Conflict",409
     if(check_domain_response==200 or type=="TXT"): # If is a valid domain.
       if(user_exists(token=token)): # if user exists, check so we are not 'fucked'
