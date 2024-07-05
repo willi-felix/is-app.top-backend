@@ -136,7 +136,8 @@ def send_del_user():
 def del_user(Code):
   return delete_user(Code)
 
-@app.route("/resend-email")
+@limiter.rate_limit(limit=1,period=10*60)
+@app.route("/resend-email", methods=["POST"])
 def res_email():
   return resend_verify_email(request.json.get("TOKEN"))
 
