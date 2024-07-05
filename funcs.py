@@ -291,17 +291,17 @@ def give_domain(domain: str, ip: str, token: str, type: str) -> tuple: # returns
     return 'Bad Request', 400 # user is not verified, therefore cannot register a domain.
   if(amount_of_domains <= data["permissions"].get("max_domains",3)): # if user's max domains are more than the current amount of domains
     check_domain_response=check_domain(domain,data,type)[1]
-    response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
-    if(list(response.json().get("result",[])).__len__()==0):
-      return "Conflict",409
-    if(check_domain_response==200 or type=="TXT"): # If is a valid domain.
-      if(user_exists(token=token)): # if user exists, check so we are not 'fucked'
-        if password_is_correct(username=username,password=password): # correct creds
-          headers = {
+    headers = {
             "Content-Type":"application/json", # tryna not to confuse cf :(
             "Authorization": "Bearer "+os.getenv('CF_KEY_W'), # cloudflare token to write.
             "X-Auth-Email": os.getenv("EMAIL") # tbh: I have no idea if this is required.
           }
+    response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{os.getenv('ZONEID')}/dns_records?name={domain+'.frii.site'}", headers=headers) # hey cloudflare my beloved, is this available?
+    if(list(response.json().get("result",[])).__len__()!=0):
+      return "Conflict",409
+    if(check_domain_response==200 or type=="TXT"): # If is a valid domain.
+      if(user_exists(token=token)): # if user exists, check so we are not 'fucked'
+        if password_is_correct(username=username,password=password): # correct creds
           fernet = Fernet(bytes(os.getenv('ENC_KEY'), 'utf-8')) # init fernet n shi
           if(type=="CNAME"): ip="example.com"
           if(type=="NS"): ip="example.com"
