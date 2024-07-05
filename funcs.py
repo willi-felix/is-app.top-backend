@@ -93,7 +93,6 @@ def get_data(username: str, only_first_one=True) -> dict:
     if(only_first_one):
       return results_found[0]
     return result
-  
   else:
     raise IndexError("No matches for username.")
   
@@ -155,6 +154,12 @@ def create_user(username: str, password: str, email: str, language: str, country
     send_verify_email(email,username,original_username)
     return True
 
+def resend_verify_email(token)->tuple:
+  username=parse_token(token)[1]
+  password=parse_token(token)[0]
+  data=get_user_data(token)
+  if(type(data)==dict):
+    return send_verify_email(data["email"],username,data["username"])
 
 def load_whole_user(token:str):
   username = parse_token(token)[1]

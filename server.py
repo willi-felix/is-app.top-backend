@@ -136,5 +136,9 @@ def send_del_user():
 def del_user(Code):
   return delete_user(Code)
 
+@app.route("/resend-email")
+def res_email():
+  return resend_verify_email(request.json.get("TOKEN"))
+
 if(__name__=="__main__"):
   app.run(host='0.0.0.0', port=5000)
