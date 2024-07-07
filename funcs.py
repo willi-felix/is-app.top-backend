@@ -23,6 +23,7 @@ resend.api_key = os.getenv("RESEND_KEY")
 cluster: MongoClient = MongoClient(os.getenv("MONGODB_URL"))
 db: Database = cluster["database"]
 collection: Collection = db["frii.site"]
+vuln_collection: Collection = db["vulnerabilities"]
 
 def username_password_to_token(username:str, password:str) -> str:
   return f"{sha256(password.encode('utf-8'))}|{sha256(username.encode('utf-8'))}"
@@ -39,6 +40,9 @@ def password_is_correct(username: str, password: str) -> bool:
 
 def generate_random_pin(lenght: int) -> str:
   return str(''.join(random.choice(string.digits) for i in range(lenght)))
+
+def generate_random_string(lenght:int) -> str:
+  return str(''.join(random.choice(string.ascii_letters+string.digits) for i in range(lenght)))
 
 def parse_token(token: str) -> list:
   """
@@ -73,7 +77,40 @@ def update_data(username: str, key: str, value: any) -> None:
     {"_id": username},
     {"$set":{key:value},},
     upsert=False
+)
+  
+def save_report(data:dict) -> bool:
+  vuln_collection.insert_one(data)
+  return True
+
+def update_report(_id, args:dict) -> None:
+  vuln_collection.update_one(
+    {"_id":_id},
+    {"$set":args,},
+    upsert=False
+)
+def append_report(_id, args:dict) -> None:
+  vuln_collection.update_one(
+    {"_id":_id},
+    {"$push":args},
+    upsert=False
   )
+  
+def add_report_progress(id:str,progress:str,time:int):
+  append_report(id,args={
+      "progress.progress": {
+          progress:time
+      }
+    })
+  
+def get_report(_id) -> dict:
+  cursor:Cursor
+  results_found:list=[]
+  cursor=vuln_collection.find({"_id":_id})
+  for result in cursor:
+    results_found.append(result)
+  if(results_found.__len__()==0): raise ValueError("No case found")
+  return results_found[0]
 
 def delete_user_from_db(username:str) -> bool:
   collection.delete_one({"_id":username})
@@ -499,3 +536,28 @@ def delete_user(code:str) -> tuple:
       delete_domain(del_codes[code]["auth-token"],domain)
   delete_user_from_db(parse_token(del_codes[code]["auth-token"])[1])
   return "OK",200
+
+def report_vulnerability(endpoint:str,email:str,expected:str,actual:str,importance:int,description:str,steps:str,impact:str,attacker:str) -> tuple:
+  report_id:str=generate_random_string(16)
+  save_report({
+    "_id":report_id,
+    "endpoint":endpoint,
+    "email":email,
+    "expected":expected,
+    "actual":actual,
+    "importance":importance,
+    "description":description,
+    "steps":steps,
+    "impact":impact, 
+    "attacker":attacker,
+    "progress":{"steps":{"seen":False,"reviewed":False,"currently_working":False,"done":False},"progress":[{"Report recieved":round(time.time())}]}
+  })
+  return "OK",200
+  
+def report_progress(id:str,progress:str,time:str):
+  add_report_progress(id,progress,time)
+  
+def report_status(id:str,status:str,mode:bool) -> tuple:
+  if(status.lower() not in ["seen","done","reviewed","fixing"]):
+    return f"status '{status}' not in accepted",422
+  update_report(id,{f"progress.steps.{status.lower()}":mode})

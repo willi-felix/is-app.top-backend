@@ -141,5 +141,24 @@ def del_user(Code):
 def res_email():
   return resend_verify_email(request.json.get("TOKEN"))
 
+#@limiter.rate(limit=3, period=120*60)
+@app.route("/vulnerability/report", methods=["POST"])
+def report_vuln():
+  rj=request.json
+  return report_vulnerability(rj.get("endpoint"),rj.get("contact-email"),rj.get("expected"),rj.get("actual"),rj.get("importance"),rj.get("description"),rj.get("steps"),rj.get("impact"),rj.get("attacker"))
+
+@app.route("/vulnerability/get",methods=["POST"])
+def report_get():
+  return get_report(request.json.get("id"))
+
+@app.route("/vulnerability/progress",methods=["POST"])
+def add_progress():
+  report_progress(request.json.get("id"),request.json.get("progress"),request.json.get("time"))
+  return "OK",200
+
+@app.route("/vulnerability/status",methods=["POST"])
+def update_status():
+  report_status(request.json.get("id"),request.json.get("status"),request.json.get("mode"))
+  return "OK",200
 if(__name__=="__main__"):
-  app.run(host='0.0.0.0', port=5000)
+  app.run(port=5000)
