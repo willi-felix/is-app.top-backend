@@ -34,7 +34,7 @@ def login():
   return_status = load_user(token)
   return return_status
 
-
+@limiter.rate_limit(limit=1,period=120*60)
 @app.route('/sign-up', methods=['POST'])
 def sign_up():
   username = request.json.get('username')
@@ -141,11 +141,13 @@ def del_user(Code):
 def res_email():
   return resend_verify_email(request.json.get("TOKEN"))
 
-#@limiter.rate(limit=3, period=120*60)
+@limiter.rate_limit(limit=3, period=120*60)
 @app.route("/vulnerability/report", methods=["POST"])
 def report_vuln():
   rj=request.json
-  return report_vulnerability(rj.get("endpoint"),rj.get("contact-email"),rj.get("expected"),rj.get("actual"),rj.get("importance"),rj.get("description"),rj.get("steps"),rj.get("impact"),rj.get("attacker"))
+  return_statement = report_vulnerability(rj.get("endpoint"),rj.get("contact-email"),rj.get("expected"),rj.get("actual"),rj.get("importance"),rj.get("description"),rj.get("steps"),rj.get("impact"),rj.get("attacker"))
+  if(return_statement[1]==200):
+    return jsonify({"code":return_statement[0]})
 
 @app.route("/vulnerability/get",methods=["POST"])
 def report_get():
