@@ -551,6 +551,7 @@ def report_vulnerability(endpoint:str,email:str,expected:str,actual:str,importan
     "description":description,
     "steps":steps,
     "impact":impact, 
+    "solved":False,
     "attacker":attacker,
     "progress":{"steps":{"seen":False,"reviewed":False,"currently_working":False,"done":False},"progress":[{"Report recieved":round(time.time())}]}
   })
@@ -575,13 +576,29 @@ def get_reports(token:str):
     results_found.append(result)
   return results_found
 
+def delete_report(id:str,token:str) -> tuple:
+  if(not password_is_correct(parse_token(token)[1],parse_token(token)[0])):
+    return "Unauthorized", 401
+  if(not load_whole_user(token).get("permissions",{}).get("reports")):
+    return "Unauthorized", 401
+  vuln_collection.delete_one({"_id":id})
+  return "OK",200
+
+def mark_as_solved(id:str,token:str) -> tuple:
+  if(not password_is_correct(parse_token(token)[1],parse_token(token)[0])):
+    return "Unauthorized", 401
+  if(not load_whole_user(token).get("permissions",{}).get("reports")):
+    return "Unauthorized", 401
+  update_report(id,{"solved":True})
+  return "OK",200
+
 def report_status(id:str,status:str,mode:bool,importance:int,token:str) -> tuple:
-  if(status.lower() not in ["seen","done","reviewed","fixing"]):
+  if(status.lower() not in ["seen","done","reviewed","currently_working"]):
     return f"status '{status}' not in accepted",422
   if(not password_is_correct(parse_token(token)[1],parse_token(token)[0])):
     return "Unauthorized", 401
   if(not load_whole_user(token).get("permissions",{}).get("reports")):
     return "Unauthorized", 401
   update_report(id,{f"progress.steps.{status.lower()}":mode})
-  if(importance!=-1):
+  if(importance>=0):
     update_report(id,{"deemed-importance":importance})

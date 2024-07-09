@@ -164,5 +164,15 @@ def update_status():
 @app.route("/vulnerability/all",methods=["POST"])
 def get_all():
   return get_reports(request.json.get("TOKEN"))
+
+@app.route("/vulnerability/solve",methods=["POST"])
+def solve():
+  return mark_as_solved(request.json.get("id"),request.json.get("TOKEN"))
+
+@app.route("/vulnerability/delete",methods=["POST"])
+def delete_vuln():
+  return delete_report(request.json.get("id"),request.json.get("TOKEN"))
+
+
 if(__name__=="__main__"):
   app.run(port=5000)
