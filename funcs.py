@@ -23,6 +23,7 @@ resend.api_key = os.getenv("RESEND_KEY")
 cluster: MongoClient = MongoClient(os.getenv("MONGODB_URL"))
 db: Database = cluster["database"]
 collection: Collection = db["frii.site"]
+vuln_collection: Collection = db["vulnerabilities"]
 
 def username_password_to_token(username:str, password:str) -> str:
   return f"{sha256(password.encode('utf-8'))}|{sha256(username.encode('utf-8'))}"
@@ -38,7 +39,11 @@ def password_is_correct(username: str, password: str) -> bool:
   return bcrypt.checkpw(password.encode("utf-8"), data["password"].encode("utf-8")) # correct creds
 
 def generate_random_pin(lenght: int) -> str:
+  raise DeprecationWarning("This method should no longer be used, please use 'generate_random_string(length:int)'")
   return str(''.join(random.choice(string.digits) for i in range(lenght)))
+
+def generate_random_string(lenght:int) -> str:
+  return str(''.join(random.choice(string.ascii_letters+string.digits) for i in range(lenght)))
 
 def parse_token(token: str) -> list:
   """
@@ -73,7 +78,40 @@ def update_data(username: str, key: str, value: any) -> None:
     {"_id": username},
     {"$set":{key:value},},
     upsert=False
+)
+  
+def save_report(data:dict) -> bool:
+  vuln_collection.insert_one(data)
+  return True
+
+def update_report(_id, args:dict) -> None:
+  vuln_collection.update_one(
+    {"_id":_id},
+    {"$set":args,},
+    upsert=False
+)
+def append_report(_id, args:dict) -> None:
+  vuln_collection.update_one(
+    {"_id":_id},
+    {"$push":args},
+    upsert=False
   )
+  
+def add_report_progress(id:str,progress:str,time:int):
+  append_report(id,args={
+      "progress.progress": {
+          progress:time
+      }
+    })
+  
+def get_report(_id) -> dict:
+  cursor:Cursor
+  results_found:list=[]
+  cursor=vuln_collection.find({"_id":_id})
+  for result in cursor:
+    results_found.append(result)
+  if(results_found.__len__()==0): raise ValueError("No case found")
+  return results_found[0]
 
 def delete_user_from_db(username:str) -> bool:
   collection.delete_one({"_id":username})
@@ -384,7 +422,7 @@ def get_user_domains(token: str) -> tuple:
 
 def send_delete_email(email:str,token:str,displayname:str) -> tuple:
   global del_codes
-  random_pin = generate_random_pin(256)
+  random_pin = generate_random_string(128)
   del_codes[random_pin] = {}
   del_codes[random_pin]["auth-token"]=token
   del_codes[random_pin]["expire"] = time.time()+30*60
@@ -407,7 +445,7 @@ def send_verify_email(email: str,username:str, displayname:str) -> tuple:
   Returns:
       HTTP status code if the email got sent.
   """
-  random_pin = generate_random_pin(64)
+  random_pin = generate_random_string(32)
   verif_codes[random_pin] = {}
   verif_codes[random_pin]["account"]=username
   verif_codes[random_pin]["expire"]=time.time()+5*60
@@ -499,3 +537,68 @@ def delete_user(code:str) -> tuple:
       delete_domain(del_codes[code]["auth-token"],domain)
   delete_user_from_db(parse_token(del_codes[code]["auth-token"])[1])
   return "OK",200
+
+def report_vulnerability(endpoint:str,email:str,expected:str,actual:str,importance:int,description:str,steps:str,impact:str,attacker:str) -> tuple:
+  report_id:str=generate_random_string(24)
+  save_report({
+    "_id":report_id,
+    "endpoint":endpoint,
+    "email":email,
+    "expected":expected,
+    "actual":actual,
+    "importance":importance,
+    "deemed-importance":0,
+    "description":description,
+    "steps":steps,
+    "impact":impact, 
+    "solved":False,
+    "attacker":attacker,
+    "progress":{"steps":{"seen":False,"reviewed":False,"currently_working":False,"done":False},"progress":[{"Report recieved":round(time.time())}]}
+  })
+  return f"{report_id}",200
+  
+def report_progress(id:str,progress:str,time:str,token:str):
+  if(not password_is_correct(parse_token(token)[1],parse_token(token)[0])):
+    return "Unauthorized", 401
+  if(not load_whole_user(token).get("permissions",{}).get("reports")):
+    return "Unauthorized", 401
+  add_report_progress(id,progress,time)
+
+def get_reports(token:str):
+  if(not password_is_correct(parse_token(token)[1],parse_token(token)[0])):
+    return "Unauthorized", 401
+  if(not load_whole_user(token).get("permissions",{}).get("reports")):
+    return "Unauthorized", 401
+  cursor:Cursor
+  results_found:list=[]
+  cursor=vuln_collection.find()
+  for result in cursor:
+    results_found.append(result)
+  return results_found
+
+def delete_report(id:str,token:str) -> tuple:
+  if(not password_is_correct(parse_token(token)[1],parse_token(token)[0])):
+    return "Unauthorized", 401
+  if(not load_whole_user(token).get("permissions",{}).get("reports")):
+    return "Unauthorized", 401
+  vuln_collection.delete_one({"_id":id})
+  return "OK",200
+
+def mark_as_solved(id:str,token:str) -> tuple:
+  if(not password_is_correct(parse_token(token)[1],parse_token(token)[0])):
+    return "Unauthorized", 401
+  if(not load_whole_user(token).get("permissions",{}).get("reports")):
+    return "Unauthorized", 401
+  update_report(id,{"solved":True})
+  return "OK",200
+
+def report_status(id:str,status:str,mode:bool,importance:int,token:str) -> tuple:
+  if(status.lower() not in ["seen","done","reviewed","currently_working"]):
+    return f"status '{status}' not in accepted",422
+  if(not password_is_correct(parse_token(token)[1],parse_token(token)[0])):
+    return "Unauthorized", 401
+  if(not load_whole_user(token).get("permissions",{}).get("reports")):
+    return "Unauthorized", 401
+  update_report(id,{f"progress.steps.{status.lower()}":mode})
+  if(importance>=0):
+    update_report(id,{"deemed-importance":importance})

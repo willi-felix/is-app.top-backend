@@ -34,7 +34,7 @@ def login():
   return_status = load_user(token)
   return return_status
 
-
+@limiter.rate_limit(limit=1,period=120*60)
 @app.route('/sign-up', methods=['POST'])
 def sign_up():
   username = request.json.get('username')
@@ -141,5 +141,40 @@ def del_user(Code):
 def res_email():
   return resend_verify_email(request.json.get("TOKEN"))
 
+@limiter.rate_limit(limit=3, period=120*60)
+@app.route("/vulnerability/report", methods=["POST"])
+def report_vuln():
+  rj=request.json
+  return_statement = report_vulnerability(rj.get("endpoint"),rj.get("contact-email"),rj.get("expected"),rj.get("actual"),rj.get("importance"),rj.get("description"),rj.get("steps"),rj.get("impact"),rj.get("attacker"))
+  if(return_statement[1]==200):
+    return jsonify({"code":return_statement[0]})
+
+@app.route("/vulnerability/get",methods=["POST"])
+def report_get():
+  return get_report(request.json.get("id"))
+
+@app.route("/vulnerability/progress",methods=["POST"])
+def add_progress():
+  report_progress(request.json.get("id"),request.json.get("progress"),request.json.get("time"),request.json.get("TOKEN"))
+  return "OK",200
+
+@app.route("/vulnerability/status",methods=["POST"])
+def update_status():
+  report_status(request.json.get("id"),request.json.get("status"),request.json.get("mode"),request.json.get("d-importance"),request.json.get("TOKEN"))
+  return "OK",200
+
+@app.route("/vulnerability/all",methods=["POST"])
+def get_all():
+  return get_reports(request.json.get("TOKEN"))
+
+@app.route("/vulnerability/solve",methods=["POST"])
+def solve():
+  return mark_as_solved(request.json.get("id"),request.json.get("TOKEN"))
+
+@app.route("/vulnerability/delete",methods=["POST"])
+def delete_vuln():
+  return delete_report(request.json.get("id"),request.json.get("TOKEN"))
+
+
 if(__name__=="__main__"):
-  app.run(host='0.0.0.0', port=5000)
+  app.run(port=5000)
