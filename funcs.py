@@ -555,7 +555,7 @@ def report_vulnerability(endpoint:str,email:str,expected:str,actual:str,importan
     "attacker":attacker,
     "progress":{"steps":{"seen":False,"reviewed":False,"currently_working":False,"done":False},"progress":[{"Report recieved":round(time.time())}]}
   })
-  return "OK",200
+  return f"{report_id}",200
   
 def report_progress(id:str,progress:str,time:str,token:str):
   if(not password_is_correct(parse_token(token)[1],parse_token(token)[0])):
