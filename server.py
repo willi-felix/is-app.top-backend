@@ -153,12 +153,16 @@ def report_get():
 
 @app.route("/vulnerability/progress",methods=["POST"])
 def add_progress():
-  report_progress(request.json.get("id"),request.json.get("progress"),request.json.get("time"))
+  report_progress(request.json.get("id"),request.json.get("progress"),request.json.get("time"),request.json.get("TOKEN"))
   return "OK",200
 
 @app.route("/vulnerability/status",methods=["POST"])
 def update_status():
-  report_status(request.json.get("id"),request.json.get("status"),request.json.get("mode"))
+  report_status(request.json.get("id"),request.json.get("status"),request.json.get("mode"),request.json.get("d-importance"),request.json.get("TOKEN"))
   return "OK",200
+
+@app.route("/vulnerability/all",methods=["POST"])
+def get_all():
+  return get_reports(request.json.get("TOKEN"))
 if(__name__=="__main__"):
   app.run(port=5000)
