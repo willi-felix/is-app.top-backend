@@ -151,6 +151,7 @@ def report_vuln():
 
 @app.route("/vulnerability/get",methods=["POST"])
 def report_get():
+  print(f"DEBUG: {request.json} {request.headers} {request.method}")
   return get_report(request.json.get("id"))
 
 @app.route("/vulnerability/progress",methods=["POST"])
