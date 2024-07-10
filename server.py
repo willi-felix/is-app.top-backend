@@ -149,9 +149,9 @@ def report_vuln():
   if(return_statement[1]==200):
     return jsonify({"code":return_statement[0]})
 
-@app.route("/vulnerability/get",methods=["POST"])
+@app.route("/vulnerability/get")
 def report_get():
-  print(f"DEBUG: {request.json} {request.headers} {request.method}")
+  print(f"Method: {request.method} Headers. {request.headers} JSON: {request.json}")
   return get_report(request.json.get("id"))
 
 @app.route("/vulnerability/progress",methods=["POST"])
