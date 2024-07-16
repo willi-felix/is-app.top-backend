@@ -109,7 +109,7 @@ class Database:
         data["verified"] = False 
         data["domains"] = {}
         self.__save_data(data) 
-        emailInstance.send_verify_email(email,username,original_username)
+        emailInstance.send_verification(Token(Token.generate(username,password)),email,original_username)
         return True
     
     def get_gpdr(self,token:Token):
