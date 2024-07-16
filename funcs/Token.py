@@ -7,7 +7,6 @@ if TYPE_CHECKING:
     from Database import Database
 
 class Token:
-    
     def __split_token(self,token:str) -> tuple:
         assert("|" in token)
         split_token = token.split("|")
@@ -19,7 +18,6 @@ class Token:
         self.string_token:str=token
         self.username:str=token_data[0]
         self.password:str=token_data[1]
-
     
     def __is_valid(self,db:Database) -> bool:
         cursor: Cursor
@@ -37,6 +35,7 @@ class Token:
             return False
         return bcrypt.checkpw(self.password.encode("utf-8"), data["password"].encode("utf-8"))
     
+    @staticmethod
     def generate(username:str, password:str) -> str:
         return f"{sha256(password.encode('utf-8'))}|{sha256(username.encode('utf-8'))}"
 

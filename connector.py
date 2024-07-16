@@ -52,8 +52,8 @@ def domain_is_available(__domain:str) -> Response:
     return Response(status=responses.get(domain_status))
 
 #/register-domain
-def register_domain(__domain:str,content:str,token:str,type:str) -> Response:
-    domain_register_status: dict = domain.register(__domain,content,Token(token),type)
+def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
+    domain_register_status: dict = domain.register(__domain,content,Token(token_),type_)
     responses:dict = {
         1000: 401,
         1001: 400,
@@ -69,7 +69,7 @@ def register_domain(__domain:str,content:str,token:str,type:str) -> Response:
         
 #/modify-domain
 def modify_domain(__domain:str, token:str, content:str, type:str) -> Response:
-    status = domain.modify(database,__domain,Token(token),content)
+    status = domain.modify(database,__domain,Token(token),content,type)
     response:dict ={
         1001: 406,
         1011: 405,
@@ -132,7 +132,7 @@ def delete_domain(token:str,domain_:str) -> Response:
 def delete_user(token:str) -> Response:
     """Doesn't acutally delete the user, just sends an email with a verification code
     """
-    user_data=database.get_basic_user_data()
+    user_data=database.get_basic_user_data(Token(token))
     if(email.send_delete_email(user_data["email"],Token(token),user_data["username"])):
         return Response(status=200)
     return Response(status=401)
@@ -165,7 +165,7 @@ def vulnerability_get(id:str) -> Response:
         status = vulnerability.get_report(id)
     except(ValueError): 
         return Response(response=json.dumps({"Error":True,"code":1001,"message":"No report found"}), status=404, mimetype="application/json")
-    return Response(response=json.dumps(status),stauts=200,mimetype="application/json")
+    return Response(response=json.dumps(status),status=200,mimetype="application/json")
 
 
     

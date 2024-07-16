@@ -39,7 +39,7 @@ class Test(unittest.TestCase):
     def test_domain_modification(self):
         random_code = Utils.generate_random_string(12)
         with self.subTest("Modifying domain"):
-            self.assertEqual(domain.modify_domain(database,"unittest",Token(str(os.getenv("TESTING_ACCOUNT"))),random_code,"TXT"),{"Error":False,"message":"Succesfully modified domain"})
+            self.assertEqual(domain.modify(database,"unittest",Token(str(os.getenv("TESTING_ACCOUNT"))),random_code,"TXT"),{"Error":False,"message":"Succesfully modified domain"})
         with self.subTest("Seeing if domain content changed"):
             self.assertEqual(domain.get_user_domains(database,Token(str(os.getenv("TESTING_ACCOUNT")))).get("unittest",{}).get("ip"),random_code)
     def test_domain_registration(self):

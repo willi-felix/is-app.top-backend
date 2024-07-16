@@ -1,8 +1,7 @@
 from __future__ import annotations
-from .Utils import *
+from .Utils import generate_random_string
 import time
 import resend
-
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from Token import Token
@@ -90,6 +89,8 @@ class Email:
                 1001 - Invalid code
                 1002 - expired
         """
+        import Token as _Token
+        Token = _Token.Token
         if (code not in self.del_codes): {"Error":True,"code":1001,"message":"Invalid code"}
         if (not round(time.time()) < self.del_codes[code]["expire"]): del self.del_codes[code]; return {"Error":True,"code":1002,"message":"Code expired"}
         return self.db.delete_account(Token(self.del_codes[code]["auth-token"]),__domain)

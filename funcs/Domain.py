@@ -13,11 +13,20 @@ class Domain:
         self.cf_key_r = cf_key_r
         self.zone_id:str=zone_id
     
-    def is_domain_valid(domain: str) -> bool:
+    @staticmethod
+    def is_domain_valid(domain_: str) -> bool:
+        """Checks if domain is vlaid
+
+        Args:
+            domain_ (str): domain
+
+        Returns:
+            bool: if domain is valid
+        """
         allowed = list(string.ascii_letters)
         allowed.extend(list(string.digits))
         allowed.extend([".","-"])
-        valid = all(c in allowed for c in domain) # this *might* work, super hacky tho
+        valid = all(c in allowed for c in domain_) # this *might* work, super hacky tho
         return valid
 
     def __add_domain_to_user(self,token: 'Token', domain: str, content: str=None,  type: str=None, domain_id: str=None) -> bool:
@@ -152,7 +161,7 @@ class Domain:
             "Authorization": "Bearer "+self.cf_key_w,
             "X-Auth-Email": self.email
         }
-        response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{data['domains'][domain]['id']}",json=data_,headers=headers)
+        response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{data['domains'][domain]['id']}",json=data_,headers=headers,timeout=20)
         if(response.status_code==200):
             self.__add_domain_to_user(token=token,domain=domain,content=new_content,domain_id=None,type=type_)
             return {"Error":False,"message":"Succesfully modified domain"}

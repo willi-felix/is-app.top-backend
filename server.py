@@ -1,6 +1,5 @@
 from flask import Flask, request, jsonify
-from flask import request, render_template
-
+from flask import render_template
 from connector import *
 import ipinfo
 import os 
@@ -10,11 +9,6 @@ from flask_limit import RateLimiter
 from dotenv import load_dotenv
 
 load_dotenv()
-"""
-!!! WARNING !!!
-There is NO backup anywhere. Please implement it
-"""
-
 app = Flask(__name__)
 app.config['CORS_HEADERS'] = 'Content-Type'
 limiter = RateLimiter(app)
@@ -59,7 +53,7 @@ def register_domain_():
   token = request.json.get("TOKEN")
   ip = request.json.get("ip")
   type_ = request.json.get("type")
-  return register_domain(domain=domain,ip=ip,token=token,type=type_)
+  return register_domain(domain,ip,token,type_)
 
 @app.route("/modify-domain",methods=["POST"])
 @limiter.rate_limit(limit=12,period=10*60)

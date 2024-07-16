@@ -1,15 +1,17 @@
+import time
+from hashlib import sha256
+from typing import TYPE_CHECKING
+
+import bcrypt
+from cryptography.fernet import Fernet
 from pymongo import MongoClient
-from pymongo.database import Database as _Database
 from pymongo.collection import Collection
 from pymongo.cursor import Cursor
-from .Token import Token
+from pymongo.database import Database as _Database
+
 from .Email import Email
-from hashlib import sha256
-from cryptography.fernet import Fernet
-from .Utils import generate_random_string
-import bcrypt
-import time
-from typing import TYPE_CHECKING
+from .Token import Token
+
 if TYPE_CHECKING:
     from Domain import Domain
     from Email import Email
