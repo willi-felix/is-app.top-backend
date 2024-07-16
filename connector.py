@@ -57,7 +57,7 @@ def register_domain(__domain:str,content:str,token:str,type:str) -> Response:
         1014: 405,
         1024: 409
     }
-    if(domain_register_status["Error"]):
+    if(domain_register_status.get("Error",False)):
         return Response(status=responses.get(domain_register_status["code"]))
     return Response(status=200)
         
@@ -70,7 +70,7 @@ def modify_domain(__domain:str, token:str, content:str, type:str) -> Response:
         1021: 409,
         1004: 401
     }
-    if(status["Error"]):
+    if(status.get("Error",False)):
         return Response(status=response.get(status["code"]))
     return Response(status=200)
 
@@ -84,7 +84,7 @@ def verification(code:str) -> Response:
 #/gpdr-get
 def gpdr_get(token:str) -> Response:
     status = database.get_gpdr(Token(token))
-    if(status["Error"]):
+    if(status.get("Error",False)):
         return Response(401)
     return Response(response=json.dumps(status),status=200,mimetype="application/json")
 
@@ -138,7 +138,7 @@ def account_deletion(code:str) -> Response:
         1001: 422,
         1002: 410
     }
-    if(status["Error"]):
+    if(status.get("Error",False)):
         return Response(status=responses.get(status["code"]))
     return Response(status=200)
 
