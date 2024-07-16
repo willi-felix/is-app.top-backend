@@ -25,7 +25,7 @@ vulnerability:Vulnerability = Vulnerability(database)
 
 def login(__token:str) -> Response:
     token = Token(__token)
-    status:int = 200 if token.password_correct() else 401
+    status:int = 200 if token.password_correct(database) else 401
     return Response(status=status)
 
 #/sign-up

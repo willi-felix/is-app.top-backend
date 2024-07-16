@@ -194,7 +194,7 @@ class Database:
             success:
                 `{"Error":False}` 
         """
-        if(not token.password_correct()): return {"Error":True,"code":1001}
+        if(not token.password_correct(self)): return {"Error":True,"code":1001}
         failed:dict={}
         user_domains:dict=self.get_data(token)["domains"]
         for key, _ in  user_domains.items():
