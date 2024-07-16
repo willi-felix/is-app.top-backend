@@ -29,8 +29,8 @@ def login(__token:str) -> Response:
     return Response(status=status)
 
 #/sign-up
-def sign_up(username:str,password:str,email:str,language:str) -> Response:
-    status: int = 200 if database.create_user(username,password,email,language,time.time()) else 409
+def sign_up(username:str,password:str,email:str,language:str,country:str) -> Response:
+    status: int = 200 if database.create_user(username,password,email,language,country,time.time()) else 409
     return Response(status=status)
 
 #/domain-is-available
