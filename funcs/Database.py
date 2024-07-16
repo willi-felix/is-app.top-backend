@@ -83,7 +83,7 @@ class Database:
     def __user_exists(self,user: str) -> bool:
         cursor:Cursor
         results:int=0
-        cursor = self.collections.find({"_id":user})
+        cursor = self.collection.find({"_id":user})
         for _ in cursor:
             results+=1
         return results!=0
