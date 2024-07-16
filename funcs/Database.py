@@ -12,6 +12,7 @@ import time
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from Domain import Domain
+    from Email import Email
     
 class Database:
     def __init__(self,url:str,encryption_key:str):
@@ -88,7 +89,7 @@ class Database:
             results+=1
         return results!=0
         
-    def create_user(self,username: str, password: str, email: str, language: str, country: str, time_signed_up) -> bool:
+    def create_user(self,username: str, password: str, email: str, language: str, country: str, time_signed_up, emailInstance:'Email') -> bool:
         original_username=username
         username = str(sha256(username.encode("utf-8")).hexdigest())
         password: str = str(sha256(password.encode("utf-8")).hexdigest())
@@ -108,7 +109,7 @@ class Database:
         data["verified"] = False 
         data["domains"] = {}
         self.__save_data(data) 
-        self.send_verify_email(email,username,original_username)
+        emailInstance.send_verify_email(email,username,original_username)
         return True
     
     def get_gpdr(self,token:Token):
