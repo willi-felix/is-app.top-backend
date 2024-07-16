@@ -88,14 +88,40 @@ class Database:
         for _ in cursor:
             results+=1
         return results!=0
-        
-    def create_user(self,username: str, password: str, email: str, language: str, country: str, time_signed_up, emailInstance:'Email') -> bool:
+    def __email_taken(self,email:str) -> bool:
+        cursor:Cursor
+        results:int=0
+        cursor = self.collection.find({"email":(self.fernet.encrypt(bytes(email,'utf-8')).decode(encoding='utf-8'))})
+        for _ in cursor:
+            resutls +=1
+        return results != 0
+    def create_user(self,username: str, password: str, email: str, language: str, country: str, time_signed_up, emailInstance:'Email') -> dict:
+        """Creates a new user
+
+        Args:
+            username (str): Username of new user
+            password (str): Password of new user
+            email (str): email of the new user
+            language (str): users language in the brwser
+            country (str): users country
+            time_signed_up (_type_): current tmie
+            emailInstance (Email): instance of Email to send verfication
+
+        Returns:
+            error:
+                `{"Error":True,"code":...,"message":...}`
+            success:
+                `{"Error":False}`
+            codes:
+                1001 - User exists
+                1002 - email in use
+        """
         original_username=username
         username = str(sha256(username.encode("utf-8")).hexdigest())
         password: str = str(sha256(password.encode("utf-8")).hexdigest())
         
-        if self.__user_exists(username): 
-            return False
+        if self.__user_exists(username): return {"Error":True,"code":1001,"message":"User already exists"}
+        if self.__email_taken(email): return {"Error":True,"code":1002,"message":"Email aready in use"}
         data: dict = {}
         data["_id"] = username
         data['email'] = (self.fernet.encrypt(bytes(email,'utf-8')).decode(encoding='utf-8')) # the encrypted email, but it is less encrypted
@@ -110,7 +136,7 @@ class Database:
         data["domains"] = {}
         self.__save_data(data) 
         emailInstance.send_verification(Token(Token.generate(username,password)),email,original_username)
-        return True
+        return {"Error":False}
     
     def get_gpdr(self,token:Token):
         if(not token.password_correct(self)): return {"Error":"Invalid credentials","code":"1001"}

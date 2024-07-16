@@ -30,8 +30,14 @@ def login(__token:str) -> Response:
 
 #/sign-up
 def sign_up(username:str,password:str,email_:str,language:str,country:str) -> Response:
-    status: int = 200 if database.create_user(username,password,email_,language,country,time.time(),email) else 409
-    return Response(status=status)
+    status:dict = database.create_user(username,password,email_,language,country,time.time(),email)
+    responses = {
+        1001: 409,
+        1002: 400
+    }
+    if status.get("Error",False):
+        return Response(status=responses.get(status))
+    return Response(status=200)
 
 #/domain-is-available
 def domain_is_available(__domain:str) -> Response:
