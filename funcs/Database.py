@@ -80,10 +80,10 @@ class Database:
             return results_found[0]
         else:
             raise IndexError("No matches for username.")
-    def __user_exists(self,user: Token) -> bool:
+    def __user_exists(self,user: str) -> bool:
         cursor:Cursor
         results:int=0
-        cursor = self.collections.find({"_id":user.username})
+        cursor = self.collections.find({"_id":user})
         for _ in cursor:
             results+=1
         return results!=0
@@ -93,7 +93,7 @@ class Database:
         username = str(sha256(username.encode("utf-8")).hexdigest())
         password: str = str(sha256(password.encode("utf-8")).hexdigest())
         
-        if self.__user_exists(username=username): 
+        if self.__user_exists(username): 
             return False
         data: dict = {}
         data["_id"] = username
