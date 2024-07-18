@@ -33,7 +33,9 @@ class Token:
             data = db.get_data(self)
         except IndexError:
             return False
-        return bcrypt.checkpw(self.password.encode("utf-8"), data["password"].encode("utf-8"))
+        status:bool = bcrypt.checkpw(self.password.encode("utf-8"), data["password"].encode("utf-8"))
+        if(status): db.user_logged_in(self)
+        return status
     
     @staticmethod
     def generate(username:str, password:str) -> str:
