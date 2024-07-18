@@ -25,8 +25,11 @@ vulnerability:Vulnerability = Vulnerability(database)
 
 def login(__token:str) -> Response:
     token = Token(__token)
-    status:int = 200 if token.password_correct(database) else 401
-    return Response(status=status)
+    status:bool = token.password_correct(database)
+    if(not status): return Response(status=401)
+    verified: bool = database.is_verified(token)
+    if(not verified): return Response(status=417)
+    return Response(status=200)
 
 #/sign-up
 def sign_up(username:str,password:str,email_:str,language:str,country:str) -> Response:
@@ -64,7 +67,7 @@ def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
         1024: 409
     }
     if(domain_register_status.get("Error",False)):
-        return Response(status=responses.get(domain_register_status["code"]))
+        return Response(status=responses.get(domain_register_status["code"]),response=domain_register_status.get("message","No extra information given"))
     return Response(status=200)
         
 #/modify-domain
@@ -77,7 +80,7 @@ def modify_domain(__domain:str, token:str, content:str, type:str) -> Response:
         1004: 401
     }
     if(status.get("Error",False)):
-        return Response(status=response.get(status["code"]))
+        return Response(status=response.get(status["code"]),response=status.get("message","No extra information"))
     return Response(status=200)
 
 #/verification/<string:Code>
