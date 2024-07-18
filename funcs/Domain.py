@@ -148,7 +148,7 @@ class Domain:
         domains:dict = data["domains"]
         
         check_domain_status=self.check_domain(domain,domains,type_)
-        if(check_domain_status!=1): return {"Error":True, "message":"Invalid domain", "code":int(f"10{check_domain_status*-1}1")}
+        if(check_domain_status!=1): return {"Error":True, "message":f"Invalid domain ({int(f'10{check_domain_status*-1}')})", "code":int(f"10{check_domain_status*-1}1")}
         data_ = {
             "content": new_content,
             "name": domain ,
