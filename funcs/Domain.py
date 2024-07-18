@@ -118,8 +118,10 @@ class Domain:
                 user_domain=domain_parts[:-2]
                 if(user_domain not in domains): 
                     return -1
-        response:Response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records?name={domain+'.frii.site'}", headers=headers) # is the domain available
-        if(list(response.json().get("result",[])).__len__()!=0): return -2
+        if(domain not in domains):
+            response:Response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records?name={domain+'.frii.site'}", headers=headers) # is the domain available
+            if(list(response.json().get("result",[])).__len__()!=0): 
+                return -2
         return 1
 
     
@@ -148,7 +150,7 @@ class Domain:
         domains:dict = data["domains"]
         
         check_domain_status=self.check_domain(domain,domains,type_)
-        if(check_domain_status!=1): return {"Error":True, "message":f"Invalid domain ({int(f'10{check_domain_status*-1}')})", "code":int(f"10{check_domain_status*-1}1")}
+        if(check_domain_status!=1): return {"Error":True, "message":f"Invalid domain ({int(f'10{check_domain_status*-1}1')})", "code":int(f"10{check_domain_status*-1}1")}
         data_ = {
             "content": new_content,
             "name": domain ,
