@@ -22,7 +22,7 @@ def index():
 
 @app.route('/login', methods=['POST'])
 def login_():
-  return login(request.json.get("TOKEN"))
+  return login(request.headers.get("X-Auth-Token"))
 
 @limiter.rate_limit(limit=1,period=120*60)
 @app.route('/sign-up', methods=['POST'])
@@ -41,71 +41,72 @@ def sign_up_():
   )
 
 @app.route('/domain-is-available',methods=["GET"])
-@limiter.rate_limit(limit=12,period=300)
+@limiter.rate_limit(limit=50,period=300)
 def domain_is_available_():
-  domain = request.args.get("domain",None)
-  return domain_is_available(domain)
+  domain_ = request.args.get("domain",None)
+  return domain_is_available(domain_)
 
 @app.route("/register-domain",methods=["POST"])
 @limiter.rate_limit(limit=9,period=10800)
 def register_domain_():
-  domain = request.json.get("domain")
-  token = request.json.get("TOKEN")
+  domain_ = request.json.get("domain")
+  token_ = request.headers.get("X-Auth-Token")
   ip = request.json.get("ip")
   type_ = request.json.get("type")
-  return register_domain(domain,ip,token,type_)
+  return register_domain(domain_,ip,token_,type_)
 
-@app.route("/modify-domain",methods=["POST"])
+@app.route("/modify-domain",methods=["PATCH"])
 @limiter.rate_limit(limit=12,period=10*60)
 def modify_domain_():
-  domain = request.json.get("domain")
-  token = request.json.get("TOKEN")
-  ip = request.json.get("ip")
+  domain_ = request.json.get("domain")
+  token_ = request.headers.get("X-Auth-Token",request.headers.get("X-Api-Key"))
+  content = request.json.get("content")
   type_ = request.json.get("type")
-  return modify_domain(domain,token,ip,type_)
+  return modify_domain(domain_,token_,content,type_)
 
 @app.route("/verification/<string:Code>", methods=["GET"])
 def verification_(Code):
   return verification(Code)
 
-@app.route("/gdpr-get",methods=["POST"])
+@app.route("/gdpr-get",methods=["GET"])
 def gpdr_get_():
-  token=request.json.get("TOKEN")
-  return gpdr_get(token)
+  token_=request.headers.get("X-Auth-Token")
+  return gpdr_get(token_)
 
-@app.route("/get-user-info",methods=["POST"])
+@app.route("/get-user-info",methods=["GET"])
 def get_user_info_():
-  token = request.json.get("TOKEN")
-  return get_user_info(token)
-@app.route("/get-domains", methods=["POST"])
+  token_ = request.headers.get("X-Auth-Token")
+  return get_user_info(token_)
+
+@app.route("/get-domains", methods=["GET"])
 def get_domains_():
-  token = request.json.get("TOKEN")
-  return get_domains(token)
+  token_ = request.headers.get("X-Auth-Token")
+  return get_domains(token_)
 
-@app.route("/is-verified", methods=["POST"])
+@app.route("/is-verified", methods=["GET"])
 def is_verified_():
-  token = request.json.get("TOKEN")
-  return is_verified(token)
+  token_ = request.headers.get("X-Auth-Token")
+  return is_verified(token_)
 
-@app.route("/delete-domain",methods=["POST"])
+@app.route("/delete-domain",methods=["DELETE"])
 def delete_domain_():
-  token = request.json.get("TOKEN")
+  token = request.headers.get("X-Auth-Token")
   domain = request.json.get("domain")
   return delete_domain(token, domain)
 
-@app.route("/delete-user",methods=["POST"])
+@app.route("/delete-user",methods=["DELETE"])
 def delete_user_():
-  token = request.json.get("TOKEN")
-  return delete_user(token)
+  token_ = request.headers.get("X-Auth-Token")
+  return delete_user(token_)
 
 @app.route("/account-deletion/<string:Code>")
 def account_deletion_(Code):
   return account_deletion(Code)
 
 @limiter.rate_limit(limit=1,period=10*60)
-@app.route("/resend-email", methods=["POST"])
+@app.route("/resend-email", methods=["GET"])
 def resend_email_():
-  return resend_email(request.json.get("TOKEN"))
+  return resend_email(request.headers.get("X-Auth-Token"))
 
 @limiter.rate_limit(limit=3, period=120*60)
 @app.route("/vulnerability/report", methods=["POST"])
@@ -113,32 +114,32 @@ def vulnerability_report_():
   rj=request.json
   return(vulnerability_report(rj.get("endpoint"),rj.get("contact-email"),rj.get("expected"),rj.get("actual"),rj.get("importance"),rj.get("description"),rj.get("steps"),rj.get("impact"),rj.get("attacker")))
 
-@app.route("/vulnerability/get", methods=["POST"])
+@app.route("/vulnerability/get", methods=["GET"])
 def vulnerability_get_():
-  return vulnerability_get(request.json.get("id"))
+  return vulnerability_get(request.headers.get("X-Auth-Token"))
 
-@app.route("/vulnerability/progress",methods=["POST"])
+@app.route("/vulnerability/progress",methods=["PATCH"])
 def add_progress():
-  report_progress(request.json.get("id"),request.json.get("progress"),request.json.get("time"),request.json.get("TOKEN"))
-  return "OK",200
+  return vulnerability_progress(request.json.get("id"),request.json.get("progress"),request.json.get("time"),request.headers.get("X-Auth-Token"))
 
-@app.route("/vulnerability/status",methods=["POST"])
+@app.route("/vulnerability/status",methods=["PATCH"])
 def update_status():
-  report_status(request.json.get("id"),request.json.get("status"),request.json.get("mode"),request.json.get("d-importance"),request.json.get("TOKEN"))
-  return "OK",200
+  return vulnerability_status(request.json.get("id"),request.json.get("status"),request.json.get("mode"),request.json.get("d-importance"),request.headers.get("X-Auth-Token"))
 
-@app.route("/vulnerability/all",methods=["POST"])
+@app.route("/vulnerability/all",methods=["GET"])
 def get_all():
-  return get_reports(request.json.get("TOKEN"))
+  return get_reports(request.headers.get("X-Auth-Token"))
 
-@app.route("/vulnerability/solve",methods=["POST"])
+@app.route("/vulnerability/solve",methods=["PUT"])
 def solve():
-  return mark_as_solved(request.json.get("id"),request.json.get("TOKEN"))
+  return mark_as_solved(request.json.get("id"),request.headers.get("X-Auth-Token"))
 
 @app.route("/vulnerability/delete",methods=["POST"])
 def delete_vuln():
-  return delete_report(request.json.get("id"),request.json.get("TOKEN"))
+  return delete_report(request.json.get("id"),request.headers.get("X-Auth-Token"))
 
-
+@app.route("/create-api",methods=["POST"])
+def create_api_():
+  return create_api(request.headers.get("X-Auth-Token"),request.json.get("domains"),request.json.get("perms"),request.json.get("comment"))
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)

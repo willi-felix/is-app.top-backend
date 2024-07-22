@@ -4,6 +4,7 @@ from funcs import Email as _Email
 from funcs import Token as _Token
 from  funcs.Utils import *
 from funcs import Vulnerability as _Vulnerability
+from funcs import Api as _Api
 from flask import Response, render_template
 import os
 from dotenv import load_dotenv
@@ -13,12 +14,14 @@ Database = _Database.Database
 Domain = _Domain.Domain
 Email = _Email.Email
 Token = _Token.Token
+Api = _Api.Api
 Vulnerability = _Vulnerability.Vulnerability
 
 load_dotenv()
 
 database:Database = Database(os.getenv("MONGODB_URL"),os.getenv("ENC_KEY"))
 token:Token
+api:Api
 domain:Domain = Domain(database,os.getenv("EMAIL"),os.getenv("CF_KEY_W"),os.getenv("CF_KEY_R"),os.getenv("ZONEID"))
 email:Email = Email((os.getenv("RESEND_KEY")),database)
 vulnerability:Vulnerability = Vulnerability(database)
@@ -170,5 +173,29 @@ def vulnerability_get(id:str) -> Response:
         return Response(response=json.dumps({"Error":True,"code":1001,"message":"No report found"}), status=404, mimetype="application/json")
     return Response(response=json.dumps(status),status=200,mimetype="application/json")
 
+#/vulnerability/progress
+def vulnerability_progress(id:str,progress:str,time:int,token:str) -> Response:
+    if(not Token(token).password_correct(database)): return Response(status=401)
+    status:int = vulnerability.report_progress(id,progress,time,Token(token))
+    if(not status):
+        return Response(status=403)
+    return Response(status=200)
 
-    
+def vulnerability_status(id:str,status:str,mode:str,d_importance:int,token:str) -> Response:
+    if(not Token(token).password_correct(database)): return Response(status=401)
+    statuses = {
+        1: 200,
+        0: 422,
+        -1: 403
+    }
+    status = vulnerability.report_status(id,status,mode,d_importance,Token(token))
+    return Response(status==statuses.get(status))
+
+#/create-api
+def create_api(token:str,domains:list,permissions:list,comment:str) -> Response:
+    if(not Token(token).password_correct(database)): return Response(status=401)
+    try:
+        status = Api.create(Token(token),permissions,domains,comment,database)
+    except PermissionError:
+        return Response(status=403)
+    return Response(status=200, response=status)

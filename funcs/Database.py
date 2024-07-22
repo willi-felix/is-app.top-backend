@@ -9,6 +9,7 @@ from pymongo.collection import Collection
 from pymongo.cursor import Cursor
 from pymongo.database import Database as _Database
 
+# pylint: disable=relative-beyond-top-level
 from .Email import Email
 from .Token import Token
 
@@ -22,6 +23,7 @@ class Database:
         self.db: _Database = self.cluster["database"]
         self.collection: Collection = self.db["frii.site"]
         self.vuln_collection: Collection = self.db["vulnerabilities"]
+        self.api_collection:Collection = self.db["api"]
         self.verif_codes:dict={}
         self.encryption_key=encryption_key
         self.fernet = Fernet(bytes(encryption_key,"utf-8"))
