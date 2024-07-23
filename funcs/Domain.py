@@ -49,6 +49,25 @@ class Domain:
         self.db.modify_domain(token,domain,domain_data)
         return True
     
+    def __add_dommain_to_user_api(self,api:'Api', domain:str, content:str=None, type:str=None, domain_id:str=None) -> bool:
+        if(domain not in api.domains):  
+            domain_data = {
+                "ip":content,
+                "type":type,
+                "registered":time.time(),
+                "id":domain_id
+            }
+            self.db.collection.update_one({"_id":api.username},{"$set":{f"domains.{domain}":domain_data}})
+            return True
+        
+        domain_data = api.domains.get(domain)
+        if(content!=None):
+            domain_data["ip"]=content
+        if(type!=None):
+            domain_data["type"]=type
+        self.db.collection.update_one({"_id":api.username},{"$set":{f"domains.{domain}":domain_data}})
+        return True
+    
     def delete_domain(self,token:'Token', domain: str) -> int:
         """Deletes specified domain
         
@@ -163,14 +182,39 @@ class Domain:
             "Authorization": "Bearer "+self.cf_key_w,
             "X-Auth-Email": self.email
         }
-        response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{data['domains'][domain]['id']}",json=data_,headers=headers,timeout=20)
+        response:Response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{data['domains'][domain]['id']}",json=data_,headers=headers,timeout=20)
         if(response.status_code==200):
             self.__add_domain_to_user(token=token,domain=domain,content=new_content,domain_id=None,type=type_)
             return {"Error":False,"message":"Succesfully modified domain"}
         else:
             return {"Error":True,"code":int(f"1{response.status_code}"),"message":"Backend api failed to respond with a valid status code."}
         
-        
+    def modify_with_api(self,database: 'Database', domain: str, apiKey:'Api', new_content:str, type_: str)->dict:
+        required_permissions = apiKey.required_permissions(domain,type_,new_content)
+        for perm in required_permissions:
+            if(perm not in apiKey.permissions): return {"Error":True,"code":1001,"message":"API key does not have sufficent permissions"}
+
+        domain_stauts = self.check_domain(domain,apiKey.domains,type_)
+        if(domain_stauts!=1): return {"Error":True,"code":1002,"message":f"Invalid domain ({domain_stauts})"}
+        data_ = {
+            "content": new_content,
+            "name": domain ,
+            "proxied": False,
+            "type": type_,
+            "comment": "Changed with api key" 
+        }
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Bearer "+self.cf_key_w,
+            "X-Auth-Email": self.email
+        }
+        print(f"{apiKey.get_domain_id(domain)}")
+        response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{apiKey.get_domain_id(domain)}",json=data_,headers=headers,timeout=20)
+        if(response.status_code!=200):
+            return {"Error":True,"code":1003,"message":"Backend refused to accept domain change"}
+        self.__add_dommain_to_user_api(apiKey,domain,new_content,type_,None)
+        return {"Error":False,"code":1000,"message":"Succesfully changed domain"}
+            
     def register(self,domain: str, content: str, token: 'Token', type: str) -> dict:
         """Registers a domain
 
@@ -223,4 +267,3 @@ class Domain:
         if(response.status_code==200):
             self.__add_domain_to_user(token,domain,content,type,response.json().get("result",{}).get("id"))
         return {"Error":False,"message":"Succesfully registered"}
-    

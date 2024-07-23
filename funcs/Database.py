@@ -50,7 +50,7 @@ class Database:
             {"$set":{key:value},},
             upsert=False
         )
-        
+
     def user_logged_in(self,user:Token):
         self.update_data(username=user.username,key="last-login",value=time.time())
 
@@ -138,6 +138,7 @@ class Database:
         data["permissions"] = {} 
         data["verified"] = False 
         data["domains"] = {}
+        data["api-keys"] = {}
         self.__save_data(data) 
         emailInstance.send_verification(Token(Token.generate(username,password)),email,original_username)
         return {"Error":False}

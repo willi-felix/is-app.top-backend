@@ -50,7 +50,7 @@ def domain_is_available_():
 @limiter.rate_limit(limit=9,period=10800)
 def register_domain_():
   domain_ = request.json.get("domain")
-  token_ = request.headers.get("X-Auth-Token")
+  token_ = request.headers.get("X-Auth-Token",request.headers.get("X-Api-Key"))
   ip = request.json.get("ip")
   type_ = request.json.get("type")
   return register_domain(domain_,ip,token_,type_)
@@ -140,6 +140,12 @@ def delete_vuln():
 
 @app.route("/create-api",methods=["POST"])
 def create_api_():
+  print(request.headers)
   return create_api(request.headers.get("X-Auth-Token"),request.json.get("domains"),request.json.get("perms"),request.json.get("comment"))
+
+@app.route("/get-api-keys",methods=["GET"])
+def get_api_keys_():
+  return get_api_keys(request.headers.get("X-Auth-Token"))
+
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)
