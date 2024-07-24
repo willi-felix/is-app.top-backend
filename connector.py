@@ -39,10 +39,11 @@ def sign_up(username:str,password:str,email_:str,language:str,country:str) -> Re
     status:dict = database.create_user(username,password,email_,language,country,time.time(),email)
     responses = {
         1001: 409,
-        1002: 400
+        1002: 400,
+        1003: 422
     }
     if status.get("Error",False):
-        return Response(status=responses.get(status))
+        return Response(status=responses.get(status),response=stauts.get("message","No extra information provided"))
     return Response(status=200)
 
 #/domain-is-available
@@ -204,6 +205,9 @@ def vulnerability_status(id:str,status:str,mode:str,d_importance:int,token:str) 
     }
     status = vulnerability.report_status(id,status,mode,d_importance,Token(token))
     return Response(status==statuses.get(status))
+
+#/vulnerability/all
+def vulnerability_all()
 
 #/create-api
 def create_api(token:str,domains:list,permissions:list,comment:str) -> Response:

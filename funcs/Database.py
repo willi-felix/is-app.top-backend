@@ -119,6 +119,7 @@ class Database:
             codes:
                 1001 - User exists
                 1002 - email in use
+                1003 - Invalid email
         """
         original_username=username
         username = str(sha256(username.encode("utf-8")).hexdigest())
@@ -140,7 +141,9 @@ class Database:
         data["domains"] = {}
         data["api-keys"] = {}
         self.__save_data(data) 
-        emailInstance.send_verification(Token(Token.generate(username,password)),email,original_username)
+        if(not emailInstance.send_verification(Token(Token.generate(username,password)),email,original_username)):
+            return {"Error":True,"code":1003,"message":"Invalid email"}
+        
         return {"Error":False}
     
     def get_gpdr(self,token:Token):
