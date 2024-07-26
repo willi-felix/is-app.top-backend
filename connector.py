@@ -43,7 +43,7 @@ def sign_up(username:str,password:str,email_:str,language:str,country:str) -> Re
         1003: 422
     }
     if status.get("Error",False):
-        return Response(status=responses.get(status),response=stauts.get("message","No extra information provided"))
+        return Response(status=responses.get(status),response=status.get("message","No extra information provided"))
     return Response(status=200)
 
 #/domain-is-available
@@ -207,7 +207,8 @@ def vulnerability_status(id:str,status:str,mode:str,d_importance:int,token:str) 
     return Response(status==statuses.get(status))
 
 #/vulnerability/all
-def vulnerability_all()
+def vulnerability_all():
+    pass
 
 #/create-api
 def create_api(token:str,domains:list,permissions:list,comment:str) -> Response:
