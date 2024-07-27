@@ -224,4 +224,4 @@ def admin_get_email(token:str,id:str) -> Response:
     status = database.admin_get_basic_data(Token(token),id)
     if(status.get("Error")):
         return Response(status=401,response="You don't have permissions to use this.")
-    return Response(status=200,response=status,mimetype="application/json")
+    return Response(status=200,response=json.dumps(status),mimetype="application/json")
