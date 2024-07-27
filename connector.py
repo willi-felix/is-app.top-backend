@@ -204,7 +204,7 @@ def vulnerability_status(id:str,status:str,mode:str,d_importance:int,token:str) 
         -1: 403
     }
     status = vulnerability.report_status(id,status,mode,d_importance,Token(token))
-    return Response(status==statuses.get(status))
+    return Response(status=statuses.get(status))
 
 #/vulnerability/all
 def vulnerability_all():
@@ -224,4 +224,4 @@ def admin_get_email(token:str,id:str) -> Response:
     status = database.admin_get_basic_data(Token(token),id)
     if(status.get("Error")):
         return Response(status=401,response="You don't have permissions to use this.")
-    return Response(status=200,response=status)
+    return Response(status=200,response=status,mimetype="application/json")
