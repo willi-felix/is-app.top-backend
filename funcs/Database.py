@@ -99,6 +99,16 @@ class Database:
         for _ in cursor:
             resutls +=1
         return results != 0
+    def admin_get_basic_data(self,token:Token,id:str) -> dict:
+        if(not self.get_data(token).get("permissions").get("userdetails",False)):
+            return {"Error":True,"code":1001,"message":"Token does not have permissions"} 
+        raw_data:dict = self.collection.find_one(id)
+        return {
+            "Error":False,
+            "username": (self.fernet.decrypt(str.encode(raw_data["display-name"]))).decode("utf-8"),
+            "email": (self.fernet.decrypt(str.encode(raw_data["email"]))).decode("utf-8")
+        }
+        
     def create_user(self,username: str, password: str, email: str, language: str, country: str, time_signed_up, emailInstance:'Email') -> dict:
         """Creates a new user
 

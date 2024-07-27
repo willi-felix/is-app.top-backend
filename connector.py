@@ -218,3 +218,10 @@ def create_api(token:str,domains:list,permissions:list,comment:str) -> Response:
     except PermissionError:
         return Response(status=403)
     return Response(status=200, response=status)
+
+#/admin/get-email
+def admin_get_email(token:str,id:str) -> Response:
+    status = database.admin_get_basic_data(Token(token),id)
+    if(status.get("Error")):
+        return Response(status=401,response="You don't have permissions to use this.")
+    return Response(status=200,response=status)
