@@ -102,6 +102,7 @@ class Database:
             results +=1
         return results != 0
     def admin_get_basic_data(self,token:Token,id:str) -> dict:
+        if(not token.password_correct(self)): return False
         if(not self.get_data(token).get("permissions").get("userdetails",False)):
             return {"Error":True,"code":1001,"message":"Token does not have permissions"} 
         raw_data:dict = self.collection.find_one(id)
@@ -112,6 +113,7 @@ class Database:
         }
         
     def admin_get_emails(self,token:Token,condition:dict) -> dict:
+        if(not token.password_correct(self)): return False
         if(not self.get_data(token).get("permissions").get("userdetails",False)):
             return {"Error":True,"code":1001,"message":"Token does not have permissions"} 
         results = self.collection.find(condition)

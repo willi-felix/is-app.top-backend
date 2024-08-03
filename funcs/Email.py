@@ -3,6 +3,8 @@ from .Utils import generate_random_string
 from .Token import Token
 import time
 import resend
+from hashlib import sha256
+import bcrypt
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from Database import Database
@@ -11,9 +13,10 @@ if TYPE_CHECKING:
 class Email:
     def __init__(self,api_key:str,db):
         resend.api_key = api_key
-        self.db = db
+        self.db:Database = db
         self.codes:dict={}
         self.del_codes:dict={}
+        self.pass_codes:dict={}
     def send_verification(self,token:Token,target:str,display_name:str) -> bool:
         random_pin = generate_random_string(32)
         self.codes[random_pin] = {}
@@ -105,9 +108,47 @@ class Email:
         Returns:
             bool: if email was sent
         """
+        start = time.time()
         data:dict=self.db.get_basic_user_data(token)
+        print(f"Getting data from db: {time.time()-start}")
         if(data["verified"]): return False
         if("Error" in data): return False
         return self.send_verification(data["email"],token.username,data["username"])
     
+    def initiate_recovery(self,username:str) -> bool:
+        """Sends a password recovery email to email
+
+        Args:
+            username (str): accounts username
+
+        Returns:
+            bool: if email was sent
+        """
+        hash_username = sha256(username.encode("utf-8")).hexdigest()
+        start = time.time() 
         
+        user_data = self.db.collection.find_one({"_id":hash_username})
+        print(f"Getting data from db: {time.time()-start}")
+    
+        email = self.db.fernet.decrypt(str.encode(user_data["email"])).decode("utf-8")
+        
+        random_pin = generate_random_string(32)
+        try:
+            r = resend.Emails.send({
+                "from":"send@frii.site",
+                "to": email,
+                "subject": "Password recovery",
+                "html": '<html style="background-color: rgb(225,225,225);font-family:"Inter",sans-serif"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div style="background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto;font-family:"Inter",sans-serif;"> <h1>Hello dear frii.site user.</h1> <h2>Click <a href="https://server.frii.site/account-recovery/$code">here</a> to reset the password of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>Link not working? Copy the text below into your browser address bar</p> https://server.frii.site/account-recovery/$code </div></html>'.replace("$code",random_pin)
+            })
+        except resend.exceptions.ResendError:
+            return False
+        self.pass_codes[random_pin] = {}
+        self.pass_codes[random_pin]["expire"] = time.time()+30*60
+        self.pass_codes[random_pin]["account"] = hash_username
+        return False
+    
+    def reset_password(self,code:str,new_password:str) -> bool:
+        if(self.pass_codes.get(code,None) is None): return False
+        self.db.collection.update_one({"_id":self.pass_codes[code]["account"]},{"$set":{"password":bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode(encoding='utf-8')}})
+        del self.pass_codes[code]
+        return True

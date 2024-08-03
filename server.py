@@ -51,7 +51,7 @@ def domain_is_available_():
 def register_domain_():
   domain_ = request.json.get("domain")
   token_ = request.headers.get("X-Auth-Token",request.headers.get("X-Api-Key"))
-  ip = request.json.get("ip")
+  ip = request.json.get("content")
   type_ = request.json.get("type")
   return register_domain(domain_,ip,token_,type_)
 
@@ -64,36 +64,43 @@ def modify_domain_():
   type_ = request.json.get("type")
   return modify_domain(domain_,token_,content,type_)
 
+@limiter.rate_limit(limit=5,period=15*60)
 @app.route("/verification/<string:Code>", methods=["GET"])
 def verification_(Code):
   return verification(Code)
 
+@limiter.rate_limit(limit=2,period=30*60)
 @app.route("/gdpr-get",methods=["GET"])
 def gpdr_get_():
   token_=request.headers.get("X-Auth-Token")
   return gpdr_get(token_)
 
+@limiter.rate_limit(limit=12,period=60)
 @app.route("/get-user-info",methods=["GET"])
 def get_user_info_():
   token_ = request.headers.get("X-Auth-Token")
   return get_user_info(token_)
 
+@limiter.rate_limit(limit=25,period=3*60)
 @app.route("/get-domains", methods=["GET"])
 def get_domains_():
   token_ = request.headers.get("X-Auth-Token")
   return get_domains(token_)
 
+@limiter.rate_limit(limit=9,period=120)
 @app.route("/is-verified", methods=["GET"])
 def is_verified_():
   token_ = request.headers.get("X-Auth-Token")
   return is_verified(token_)
 
+@limiter.rate_limit(limit=9,period=120)
 @app.route("/delete-domain",methods=["DELETE"])
 def delete_domain_():
   token = request.headers.get("X-Auth-Token")
   domain = request.json.get("domain")
   return delete_domain(token, domain)
 
+@limiter.rate_limit(limit=3,period=10*60)
 @app.route("/delete-user",methods=["DELETE"])
 def delete_user_():
   token_ = request.headers.get("X-Auth-Token")
@@ -103,7 +110,7 @@ def delete_user_():
 def account_deletion_(Code):
   return account_deletion(Code)
 
-@limiter.rate_limit(limit=1,period=10*60)
+@limiter.rate_limit(limit=1,period=30)
 @app.route("/resend-email", methods=["GET"])
 def resend_email_():
   return resend_email(request.headers.get("X-Auth-Token"))
@@ -116,7 +123,7 @@ def vulnerability_report_():
 
 @app.route("/vulnerability/get", methods=["GET"])
 def vulnerability_get_():
-  return vulnerability_get(request.headers.get("X-Auth-Token"))
+  return vulnerability_get(request.args.get("id"))
 
 @app.route("/vulnerability/progress",methods=["PATCH"])
 def add_progress():
@@ -154,6 +161,14 @@ def admin_get_email_():
 @app.route("/admin/get-emails",methods=["POST"])
 def admin_get_emails_():
   return admin_get_emails(request.headers.get("X-Auth-Token"),request.json.get("condition"))
+
+@app.route("/reset-password",methods=["PATCH"])
+def reset_password_():
+  return reset_password(request.json.get("username"))
+
+@app.route("/account-recovery/<string:Code>", methods=["PATCH"])
+def account_recovery_(Code):
+  return account_recovery(Code,request.json.get("password"))
 
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)

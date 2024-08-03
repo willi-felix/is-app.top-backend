@@ -27,7 +27,7 @@ email:Email = Email((os.getenv("RESEND_KEY")),database)
 vulnerability:Vulnerability = Vulnerability(database)
 
 def login(__token:str) -> Response:
-    if("|" not in __token): return Response(status=422)
+    if(__token is None or "|" not in __token): return Response(status=422)
     token = Token(__token)
     status:bool = token.password_correct(database)
     if(not status): return Response(status=401)
@@ -232,3 +232,11 @@ def admin_get_emails(token:str,condition:dict) -> Response:
     if(status.get("Error")):
         return Response(status=401,response="You don't have permissions to use this.")
     return Response(status=200,response=json.dumps(status),mimetype="application/json")
+
+def reset_password(username:str) -> Response:
+    status = email.initiate_recovery(username)
+    return Response(status=200,response=status)
+
+def account_recovery(code:str,password:str) -> Response:
+    status = email.reset_password(code,password)
+    return Response(status=200, response=json.dumps({"Error":not status}),mimetype="application/json")
