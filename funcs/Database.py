@@ -97,7 +97,7 @@ class Database:
         # WARNING: Does not actually work since fernet encryption uses system time
         cursor:Cursor
         results:int=0
-        cursor = self.collection.find({"email":(self.fernet.encrypt(bytes(email,'utf-8')).decode(encoding='utf-8'))})
+        cursor = self.collection.find({"email-hash":str(sha256((email+"supahcool").encode("utf-8")).hexdigest())})
         for _ in cursor:
             results +=1
         return results != 0
@@ -111,6 +111,15 @@ class Database:
             "email": (self.fernet.decrypt(str.encode(raw_data["email"]))).decode("utf-8")
         }
         
+    def admin_get_emails(self,token:Token,condition:dict) -> dict:
+        if(not self.get_data(token).get("permissions").get("userdetails",False)):
+            return {"Error":True,"code":1001,"message":"Token does not have permissions"} 
+        results = self.collection.find(condition)
+        emails:list=[]
+        for result in results:
+            results.append(self.fernet.decrypt(str.encode(result["email"])).decode("utf-8"))
+        return {"Error":False,"emails":emails}
+            
     def create_user(self,username: str, password: str, email: str, language: str, country, time_signed_up, emailInstance:'Email') -> dict:
         """Creates a new user
 

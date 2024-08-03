@@ -226,3 +226,9 @@ def admin_get_email(token:str,id:str) -> Response:
     if(status.get("Error")):
         return Response(status=401,response="You don't have permissions to use this.")
     return Response(status=200,response=json.dumps(status),mimetype="application/json")
+
+def admin_get_emails(token:str,condition:str) -> Response:
+    status = database.admin_get_emails(Token(token),json.loads(condition))
+    if(status.get("Error")):
+        return Response(status=401,response="You don't have permissions to use this.")
+    return Response(status=200,response=json.dumps(status),mimetype="application/json")
