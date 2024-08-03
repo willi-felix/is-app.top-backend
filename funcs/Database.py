@@ -117,7 +117,7 @@ class Database:
         results = self.collection.find(condition)
         emails:list=[]
         for result in results:
-            results.append(self.fernet.decrypt(str.encode(result["email"])).decode("utf-8"))
+            emails.append(self.fernet.decrypt(str.encode(result["email"])).decode("utf-8"))
         return {"Error":False,"emails":emails}
             
     def create_user(self,username: str, password: str, email: str, language: str, country, time_signed_up, emailInstance:'Email') -> dict:
