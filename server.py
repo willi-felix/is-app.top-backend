@@ -153,7 +153,7 @@ def admin_get_email_():
 
 @app.route("/admin/get-emails",methods=["POST"])
 def admin_get_emails_():
-  return admin_get_emails(request.header.get("X-Auth-Token"),request.json.get("condition"))
+  return admin_get_emails(request.headers.get("X-Auth-Token"),request.json.get("condition"))
 
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)
