@@ -146,7 +146,7 @@ class Database:
         data["display-name"] = (self.fernet.encrypt(bytes(username,'utf-8')).decode(encoding='utf-8')) # their display name, I don't think this can be changed tho lol
         data['lang'] = language 
         data['country'] = country
-        data['email-hash']: (sha256((email+"supahcool").encode("utf-8")).hexdigest())
+        data['email-hash'] = str(sha256((email+"supahcool").encode("utf-8")).hexdigest())
         data['accessed-from'] = []
         data["created"] = time_signed_up
         data["last-login"] = time.time() 
