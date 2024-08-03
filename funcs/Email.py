@@ -141,6 +141,7 @@ class Email:
                 "html": '<html style="background-color: rgb(225,225,225);font-family:"Inter",sans-serif"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div style="background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto;font-family:"Inter",sans-serif;"> <h1>Hello dear frii.site user.</h1> <h2>Click <a href="https://server.frii.site/account-recovery/$code">here</a> to reset the password of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>Link not working? Copy the text below into your browser address bar</p> https://server.frii.site/account-recovery/$code </div></html>'.replace("$code",random_pin)
             })
         except resend.exceptions.ResendError:
+            print("Email error")
             return False
         self.pass_codes[random_pin] = {}
         self.pass_codes[random_pin]["expire"] = time.time()+30*60
@@ -148,7 +149,10 @@ class Email:
         return False
     
     def reset_password(self,code:str,new_password:str) -> bool:
+        print(f"New password: {new_password} codes: {self.pass_codes}")
         if(self.pass_codes.get(code,None) is None): return False
-        self.db.collection.update_one({"_id":self.pass_codes[code]["account"]},{"$set":{"password":bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode(encoding='utf-8')}})
+        new_password = str(sha256(new_password.encode("utf-8")).hexdigest())
+        password = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode(encoding='utf-8')
+        self.db.collection.update_one({"_id":self.pass_codes[code]["account"]},{"$set":{"password":password}})
         del self.pass_codes[code]
         return True

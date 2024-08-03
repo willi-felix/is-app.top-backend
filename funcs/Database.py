@@ -102,7 +102,7 @@ class Database:
             results +=1
         return results != 0
     def admin_get_basic_data(self,token:Token,id:str) -> dict:
-        if(not token.password_correct(self)): return False
+        if(not token.password_correct(self)): return {"Error":True,"code":1000}
         if(not self.get_data(token).get("permissions").get("userdetails",False)):
             return {"Error":True,"code":1001,"message":"Token does not have permissions"} 
         raw_data:dict = self.collection.find_one(id)
@@ -156,7 +156,7 @@ class Database:
         data['password'] = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(encoding='utf-8') # the encrypted password
         data["display-name"] = (self.fernet.encrypt(bytes(username,'utf-8')).decode(encoding='utf-8')) # their display name, I don't think this can be changed tho lol
         data['lang'] = language 
-        data['country'] = country
+        data['country'] = country   
         data['email-hash'] = str(sha256((email+"supahcool").encode("utf-8")).hexdigest())
         data['accessed-from'] = []
         data["created"] = time_signed_up
