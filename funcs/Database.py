@@ -41,7 +41,7 @@ class Database:
         """
         Saves data to mongodb
         """
-        assert(type(data)==dict)
+        assert(type(data) is dict)
         self.collection.insert_one(data)
         
     def update_data(self,username: str, key: str, value: any) -> None:
@@ -70,10 +70,11 @@ class Database:
         if(not user.password_correct(self)): return False
         assert(domain!=None)
         self.remove_from_cache(user)
+        
         self.collection.update_one({"_id":user.username},{"$set":{f"domains.{domain}":domain_data}})
     
     def get_data(self,user:Token) -> dict:
-        if(self.__get_cache(user)!=None): 
+        if(self.__get_cache(user) is not None): 
             return self.__get_cache(user)
         cursor: Cursor
         results_found: list = []
@@ -93,11 +94,12 @@ class Database:
             results+=1
         return results!=0
     def __email_taken(self,email:str) -> bool:
+        # WARNING: Does not actually work since fernet encryption uses system time
         cursor:Cursor
         results:int=0
         cursor = self.collection.find({"email":(self.fernet.encrypt(bytes(email,'utf-8')).decode(encoding='utf-8'))})
         for _ in cursor:
-            resutls +=1
+            results +=1
         return results != 0
     def admin_get_basic_data(self,token:Token,id:str) -> dict:
         if(not self.get_data(token).get("permissions").get("userdetails",False)):
@@ -109,7 +111,7 @@ class Database:
             "email": (self.fernet.decrypt(str.encode(raw_data["email"]))).decode("utf-8")
         }
         
-    def create_user(self,username: str, password: str, email: str, language: str, country: str, time_signed_up, emailInstance:'Email') -> dict:
+    def create_user(self,username: str, password: str, email: str, language: str, country, time_signed_up, emailInstance:'Email') -> dict:
         """Creates a new user
 
         Args:
@@ -144,6 +146,8 @@ class Database:
         data["display-name"] = (self.fernet.encrypt(bytes(username,'utf-8')).decode(encoding='utf-8')) # their display name, I don't think this can be changed tho lol
         data['lang'] = language 
         data['country'] = country
+        data['email-hash']: (sha256((email+"supahcool").encode("utf-8")).hexdigest())
+        data['accessed-from'] = []
         data["created"] = time_signed_up
         data["last-login"] = time.time() 
         data["permissions"] = {} 

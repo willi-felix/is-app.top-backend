@@ -2,7 +2,7 @@ from funcs import Database as _Database
 from funcs import Domain as _Domain
 from funcs import Email as _Email
 from funcs import Token as _Token
-from  funcs.Utils import *
+from  funcs.Utils import *  # noqa: F403
 from funcs import Vulnerability as _Vulnerability
 from funcs import Api as _Api
 from flask import Response, render_template
@@ -27,6 +27,7 @@ email:Email = Email((os.getenv("RESEND_KEY")),database)
 vulnerability:Vulnerability = Vulnerability(database)
 
 def login(__token:str) -> Response:
+    if("|" not in __token): return Response(status=422)
     token = Token(__token)
     status:bool = token.password_correct(database)
     if(not status): return Response(status=401)

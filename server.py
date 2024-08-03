@@ -151,6 +151,7 @@ def get_api_keys_():
 def admin_get_email_():
   return admin_get_email(request.headers.get("X-Auth-Token"),request.args.get("id"))
 
+@app.route("/oauth")
 
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)

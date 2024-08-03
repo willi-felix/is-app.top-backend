@@ -167,6 +167,7 @@ class Domain:
         if(not token.password_correct(database)): return {"Error":True,"message":"Invalid credentials", "code":1004}
         data: dict = self.db.get_data(token)
         domains:dict = data["domains"]
+        if(domain not in domains): return {"Error":True,"message":"No permissions","code":1005}
         
         check_domain_status=self.check_domain(domain,domains,type_)
         if(check_domain_status!=1): return {"Error":True, "message":f"Invalid domain ({int(f'10{check_domain_status*-1}1')})", "code":int(f"10{check_domain_status*-1}1")}
@@ -208,7 +209,6 @@ class Domain:
             "Authorization": "Bearer "+self.cf_key_w,
             "X-Auth-Email": self.email
         }
-        print(f"{apiKey.get_domain_id(domain)}")
         response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{apiKey.get_domain_id(domain)}",json=data_,headers=headers,timeout=20)
         if(response.status_code!=200):
             return {"Error":True,"code":1003,"message":"Backend refused to accept domain change"}
