@@ -72,8 +72,8 @@ def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
             1002: 403,
             1003: 429,
             1004: 406,
-            1014: 405,
-            1024: 409
+            1014: 405, # does not own a certain part of the domain
+            1024: 409 # domain in use
         }
         if(domain_register_status.get("Error",False)):
             return Response(status=responses.get(domain_register_status["code"]),response=domain_register_status.get("message","No extra information given"))
@@ -92,11 +92,12 @@ def modify_domain(__domain:str, token:str, content:str, type_:str) -> Response:
         return Response(status=responses.get(status["code"]),response=status.get("message","No extra information"))
     else:
         status = domain.modify(database,__domain,Token(token),content,type_)
-        response:dict ={
+        response:dict = {
             1001: 406,
             1011: 405,
             1021: 409,
-            1004: 401
+            1004: 401,
+            1005: 403
         }
         if(status.get("Error",False)):
             return Response(status=response.get(status["code"]),response=status.get("message","No extra information"))
@@ -178,7 +179,7 @@ def resend_email(token:str) -> Response:
 #/vulnerability/report
 def vulnerability_report(endpoint:str,email:str,expected:str,actual:str,importance:str,description:str,steps:str,impact:str,attacker:str) -> Response:
     status:str = vulnerability.create(endpoint,email,expected,actual,importance,description,steps,impact,attacker)
-    return Response(response={"code":status},status=200,mimetype="application/json")
+    return Response(response=json.dumps({"code":status}),status=200,mimetype="application/json")
 
 #/vulnerability/get
 def vulnerability_get(id:str) -> Response:
@@ -218,7 +219,7 @@ def create_api(token:str,domains:list,permissions:list,comment:str) -> Response:
         status = Api.create(Token(token),permissions,domains,comment,database)
     except PermissionError:
         return Response(status=403)
-    return Response(status=200, response=status)
+    return Response(status=200, response=json.dumps(status))
 
 #/admin/get-email
 def admin_get_email(token:str,id:str) -> Response:

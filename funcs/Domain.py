@@ -160,6 +160,7 @@ class Domain:
             success:
                 `{"Error":False,"message":"Succesfully modified domain"}`
             codes: 
+                1005: Domain not in domains
                 1004: Invalid credentials
                 10x1: Invalid domain (x being reason, consult `self.check_domain()`)
                 1xxx: Cloudflare api issue

@@ -17,10 +17,10 @@ class Email:
         self.codes:dict={}
         self.del_codes:dict={}
         self.pass_codes:dict={}
-    def send_verification(self,token:Token,target:str,display_name:str) -> bool:
+    def send_verification(self,token:str,target:str,display_name:str) -> bool:
         random_pin = generate_random_string(32)
         self.codes[random_pin] = {}
-        self.codes[random_pin]["account"]=token.username
+        self.codes[random_pin]["account"]=token
         self.codes[random_pin]["expire"]=time.time()+5*60
         try:
             r = resend.Emails.send({ 
@@ -28,7 +28,7 @@ class Email:
                 "to": target, 
                 "subject": "Verify your account",
                 "html": 
-                '<html><link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div class="holder"> <h1>Hello $username!</h1> <h2>Click <a href="https://server.frii.site/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 5 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://server.frii.site/verification/$code</div></html><style> html { background-color: rgb(225,225,225); } .holder { background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto; } *{font-family:"Inter",sans-serif}</style>'.replace("$username",display_name).replace("$code",random_pin)
+                '<html><link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div class="holder"> <h1>Hello $username!</h1> <h2>Click <a href="https://api.frii.site/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 5 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://api.frii.site/verification/$code</div></html><style> html { background-color: rgb(225,225,225); } .holder { background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto; } *{font-family:"Inter",sans-serif}</style>'.replace("$username",display_name).replace("$code",random_pin)
             })
         except resend.exceptions.ResendError:
             return False
@@ -69,7 +69,7 @@ class Email:
             "from":"send@frii.site",
             "to": email,
             "subject": "Confirm your account deletion",
-            "html": '<html><link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div class="holder"> <h1>Hello $username.</h1> <h2>Click <a href="https://server.frii.site/account-deletion/$code">here</a> to confirm the deletion of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 30 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://server.frii.site/account-deletion/$code</div></html><style> html { background-color: rgb(225,225,225); } .holder { background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto; } *{font-family:"Inter",sans-serif}</style>'.replace("$code",random_pin).replace("$username",displayname)
+            "html": '<html><link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div class="holder"> <h1>Hello $username.</h1> <h2>Click <a href="https://api.frii.site/account-deletion/$code">here</a> to confirm the deletion of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 30 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://api.frii.site/account-deletion/$code</div></html><style> html { background-color: rgb(225,225,225); } .holder { background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto; } *{font-family:"Inter",sans-serif}</style>'.replace("$code",random_pin).replace("$username",displayname)
         })
         return True
     
@@ -138,7 +138,7 @@ class Email:
                 "from":"send@frii.site",
                 "to": email,
                 "subject": "Password recovery",
-                "html": '<html style="background-color: rgb(225,225,225);font-family:"Inter",sans-serif"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div style="background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto;font-family:"Inter",sans-serif;"> <h1>Hello dear frii.site user.</h1> <h2>Click <a href="https://server.frii.site/account-recovery/$code">here</a> to reset the password of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>Link not working? Copy the text below into your browser address bar</p> https://server.frii.site/account-recovery/$code </div></html>'.replace("$code",random_pin)
+                "html": '<html style="background-color: rgb(225,225,225);font-family:"Inter",sans-serif"> <link rel="preconnect" href="https://fonts.googleapis.com"> <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin> <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet"> <div style="background-color: rgb(255,255,255); width: 50vw; border-radius: 1em; padding: 2em; margin-left: auto; margin-right: auto;font-family:"Inter",sans-serif;"> <h1>Hello dear frii.site user.</h1> <h2>Click <a href="https://api.frii.site/account-recovery/$code">here</a> to reset the password of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>Link not working? Copy the text below into your browser address bar</p> https://api.frii.site/account-recovery/$code </div></html>'.replace("$code",random_pin)
             })
         except resend.exceptions.ResendError:
             print("Email error")
