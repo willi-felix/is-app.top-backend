@@ -44,7 +44,7 @@ def sign_up(username:str,password:str,email_:str,language:str,country:str) -> Re
         1003: 422
     }
     if status.get("Error",False):
-        return Response(status=responses.get(status),response=status.get("message","No extra information provided"))
+        return Response(status=responses.get(status),response=json.dumps(status.get("message","No extra information provided")))
     return Response(status=200)
 
 #/domain-is-available
@@ -219,7 +219,7 @@ def create_api(token:str,domains:list,permissions:list,comment:str) -> Response:
         status = Api.create(Token(token),permissions,domains,comment,database)
     except PermissionError:
         return Response(status=403)
-    return Response(status=200, response=json.dumps(status))
+    return Response(status=200, response=status)
 
 #/admin/get-email
 def admin_get_email(token:str,id:str) -> Response:
