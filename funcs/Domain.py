@@ -29,12 +29,12 @@ class Domain:
         valid = all(c in allowed for c in domain_) # this *might* work, super hacky tho
         return valid
 
-    def __add_domain_to_user(self,token: 'Token', domain: str, content: str=None,  type: str=None, domain_id: str=None) -> bool:
+    def __add_domain_to_user(self,token: 'Token', domain: str, content: str=None,  type_: str=None, domain_id: str=None) -> bool:
         data = self.db.get_data(token)
         if(domain not in data["domains"]):  
             domain_data = {
                 "ip":content,
-                "type":type,
+                "type":type_,
                 "registered":time.time(),
                 "id":domain_id
             }
@@ -44,16 +44,16 @@ class Domain:
         domain_data = data["domains"][domain]
         if(content!=None):
             domain_data["ip"]=content
-        if(type!=None):
-            domain_data["type"]=type
+        if(type_!=None):
+            domain_data["type"]=type_
         self.db.modify_domain(token,domain,domain_data)
         return True
     
-    def __add_dommain_to_user_api(self,api:'Api', domain:str, content:str=None, type:str=None, domain_id:str=None) -> bool:
+    def __add_dommain_to_user_api(self,api:'Api', domain:str, content:str=None, type_:str=None, domain_id:str=None) -> bool:
         if(domain not in api.domains):  
             domain_data = {
                 "ip":content,
-                "type":type,
+                "type":type_,
                 "registered":time.time(),
                 "id":domain_id
             }
@@ -63,8 +63,8 @@ class Domain:
         domain_data = api.domains.get(domain)
         if(content!=None):
             domain_data["ip"]=content
-        if(type!=None):
-            domain_data["type"]=type
+        if(type_!=None):
+            domain_data["type"]=type_
         self.db.collection.update_one({"_id":api.username},{"$set":{f"domains.{domain}":domain_data}})
         return True
     
@@ -111,13 +111,13 @@ class Domain:
             return data["domains"]
         return {"Error":True,"code":"1002","message":"No domains"}
     
-    def check_domain(self,domain: str, domains:dict={}, type: str = "A") -> int:
+    def check_domain(self,domain: str, domains:dict={}, type_: str = "A") -> int:
         """Checks if domain is valid, and not in use
 
         Args:
             domain (str): specified domain (**without** .frii.site suffix)
             domains (dict, optional): domains that user has (`get_data()["domains]`). if is None, the domain is considered invalid if there is another domain linked to it (secondary.primary.frii.site) since the server cannot verify if user owns primary.frii...
-            type (str, optional): Type of the record in uppercase, supported: A,CNAME,TXT,NS. Defaults to "A".
+            type_ (str, optional): Type of the record in uppercase, supported: A,CNAME,TXT,NS. Defaults to "A".
 
         Returns:
             int: 1 - Success
@@ -129,9 +129,9 @@ class Domain:
             "X-Auth-Email": self.email, 
             "Authorization": "Bearer "+self.cf_key_r
         }
-        if(not Domain.is_domain_valid(domain)): return 0
-        if(type=="NS"): return 1
-        if(type=="TXT"):
+        if(type_ != "TXT"):
+            if(not Domain.is_domain_valid(domain)): return 0
+        if(type_=="TXT"):
             if("frii.site" in domain):
                 domain_parts:str = domain.split(".")
                 user_domain=domain_parts[:-2]
@@ -186,7 +186,7 @@ class Domain:
         }
         response:Response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{data['domains'][domain]['id']}",json=data_,headers=headers,timeout=20)
         if(response.status_code==200):
-            self.__add_domain_to_user(token=token,domain=domain,content=new_content,domain_id=None,type=type_)
+            self.__add_domain_to_user(token=token,domain=domain,content=new_content,domain_id=None,type_=type_)
             return {"Error":False,"message":"Succesfully modified domain"}
         else:
             return {"Error":True,"code":int(f"1{response.status_code}"),"message":"Backend api failed to respond with a valid status code."}
@@ -216,7 +216,7 @@ class Domain:
         self.__add_dommain_to_user_api(apiKey,domain,new_content,type_,None)
         return {"Error":False,"code":1000,"message":"Succesfully changed domain"}
             
-    def register(self,domain: str, content: str, token: 'Token', type: str) -> dict:
+    def register(self,domain: str, content: str, token: 'Token', type_: str) -> dict:
         """Registers a domain
 
         Args:
@@ -239,14 +239,14 @@ class Domain:
         """
         if(not token.password_correct(self.db)): return {"Error":True,"code":1000,"message":"Wrong credentials"}
 
-        if(type.lower() not in ["a","cname","txt","ns"]): return {"Error":True,"code":1001,"message":f"Invalid type: {type}"}
+        if(type_.lower() not in ["a","cname","txt","ns"]): return {"Error":True,"code":1001,"message":f"Invalid type: {type_}"}
         
         if(not self.db.is_verified(token)): return {"Error":True,"code":1002,"message":"Please verify your account."}
         
         amount_of_domains: int = self.get_user_domains(self.db,token).__len__()
         if(amount_of_domains > self.db.get_permission(token,"max-domains",4)): return {"Error":True,"code":1003,"message":"You have reached your domain limit"}
         
-        domain_check:int=self.check_domain(domain,self.get_user_domains(self.db,token),type)
+        domain_check:int=self.check_domain(domain,self.get_user_domains(self.db,token),type_)
         if(domain_check!=1): return {"Error":True,"code":int(f"10{domain_check*-1}4"),"message":f"Domain is not valid. Reason No. {domain_check}"}
         
         headers = {
@@ -255,16 +255,16 @@ class Domain:
             "X-Auth-Email": self.email 
         }
 
-        if(type=="CNAME" or type=="NS"): content="example.com"
+        if(type_=="CNAME" or type_=="NS"): content="example.com"
         data_ = {
             "content": content,
             "name": domain, # because 'domain' is *only* the subdomain (example.frii.site->example)
             "proxied": False, # so cloudflare doesn't proxy the content
-            "type": type.strip(), # the type of the record.
+            "type": type_.strip(), # the type of the record.
             "comment": "Issued by "+(self.db.fernet.decrypt(str.encode(self.db.get_data(token)["display-name"]))).decode("utf-8"), # just a handy-dandy lil feature that shows the admin (me) who registered the domain
             "ttl": 1 # auto ttl
         }
         response = requests.post(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records",headers=headers,json=data_)
         if(response.status_code==200):
-            self.__add_domain_to_user(token,domain,content,type,response.json().get("result",{}).get("id"))
+            self.__add_domain_to_user(token,domain,content,type_,response.json().get("result",{}).get("id"))
         return {"Error":False,"message":"Succesfully registered"}
