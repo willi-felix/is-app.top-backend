@@ -67,7 +67,6 @@ class Database:
         return True
     
     def modify_domain(self,user:Token,domain: str, domain_data:dict) -> bool:
-        domain = domain.replace(".","\u002E")
         if(not user.password_correct(self)): return False
         assert(domain!=None)
         self.remove_from_cache(user)
