@@ -61,6 +61,7 @@ class Database:
         return True
 
     def add_domain(self,user: Token, domain_name:str, domain:dict) -> bool:
+        print(f"Adding domain {domain_name} to users db")
         if(not user.password_correct(self)): return False
         self.remove_from_cache(user)
         self.collection.update_one({"_id":user.username},{"$set":{f"domains.{domain_name}":domain}})
