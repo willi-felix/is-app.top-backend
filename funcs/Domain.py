@@ -30,6 +30,7 @@ class Domain:
         return valid
 
     def __add_domain_to_user(self,token: 'Token', domain: str, content: str=None,  type_: str=None, domain_id: str=None) -> bool:
+        domain = domain.replace(".","\u002E")
         data = self.db.get_data(token)
         if(domain not in data["domains"]):  
             domain_data = {
@@ -276,4 +277,6 @@ class Domain:
         response = requests.post(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records",headers=headers,json=data_)
         if(response.status_code==200):
             self.__add_domain_to_user(token,domain,content,type_,response.json().get("result",{}).get("id"))
+        else:
+            return {"Error":True,"message":"Cloudflare did not accept domain"}
         return {"Error":False,"message":"Succesfully registered"}
