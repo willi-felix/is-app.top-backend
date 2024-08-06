@@ -133,11 +133,15 @@ class Domain:
             if(not Domain.is_domain_valid(domain)): return 0
         if(type_=="TXT"):
             if("frii.site" in domain):
-                d = "."
-                domain_parts = [e+d for e in domain.split(d) if e]
-                user_domain:list=domain_parts[:-2]
+
+                domain_parts = domain.split(".")
+                        
+                user_domain:list=domain_parts[:-2][1:]
                 req_domain:str=""
-                for part in user_domain:
+                for domain in user_domain:
+                    part = domain
+                    if(domain!=user_domain[-1]):
+                        part += "."
                     req_domain+=part
                 print(req_domain)
                 if(req_domain not in domains): 
