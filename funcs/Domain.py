@@ -138,6 +138,7 @@ class Domain:
                 req_domain:str=""
                 for part in user_domain:
                     req_domain+=part
+                print(req_domain)
                 if(req_domain not in domains): 
                     return -1
         if(domain not in domains):
