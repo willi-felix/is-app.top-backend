@@ -87,7 +87,7 @@ class Domain:
         
         print(f"Deleting domain {domain}")
         print(f"Domains: {domains}")
-        response = requests.delete(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace("[dot]",".")]['id']}",headers=headers)
+        response = requests.delete(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace('[dot]','.')]['id']}",headers=headers)
         if(response.status_code==200):
             del domains[domain]
             print(f"Deleting {domain}")
