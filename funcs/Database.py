@@ -68,7 +68,7 @@ class Database:
         return True
     
     def modify_domain(self,user:Token,domain: str, domain_data:dict) -> bool:
-        domain = domain.replace(".","\u002E")
+        domain = domain.replace(".","[dot]")
         if(not user.password_correct(self)): return False
         assert(domain!=None)
         self.remove_from_cache(user)
@@ -84,6 +84,7 @@ class Database:
         for result in cursor:
             results_found.append(result)
         self.__add_to_cache(results_found[0],user)
+        self.user_logged_in(user)
         if(results_found.__len__()!=0):
             return results_found[0]
         else:
@@ -273,4 +274,3 @@ class Database:
             response["Errors"]=failed
         return response
             
-        

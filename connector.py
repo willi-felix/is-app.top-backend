@@ -49,7 +49,7 @@ def sign_up(username:str,password:str,email_:str,language:str,country:str) -> Re
 
 #/domain-is-available
 def domain_is_available(__domain:str) -> Response:
-    __domain = __domain.replace(".","\u002E")
+    __domain = __domain.replace(".","[dot]")
     domain_status: int = domain.check_domain(__domain)
     # vercel uses python 3.9, thus why there is no switch case logic.
     responses:dict= {
@@ -63,7 +63,7 @@ def domain_is_available(__domain:str) -> Response:
 #/register-domain
 def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
     print("Replacing . with a special character")
-    __domain = __domain.replace(".","\u002E")
+    __domain = __domain.replace(".","[dot]")
     if(token_.startswith("$API")):
         domain.register()
         
@@ -84,7 +84,7 @@ def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
         
 #/modify-domain
 def modify_domain(__domain:str, token:str, content:str, type_:str) -> Response:
-    __domain = __domain.replace(".","\u002E")
+    __domain = __domain.replace(".","[dot]")
     if(token.startswith("$API")):
         status = domain.modify_with_api(database,__domain,Api(token,database),content,type_)
         responses: dict = {
@@ -147,7 +147,7 @@ def is_verified(token:str) -> Response:
     return 201 # if not verified
 #/delete-domain
 def delete_domain(token:str,domain_:str) -> Response:
-    domain_ = domain_.replace(".","\u002E")
+    domain_ = domain_.replace(".","[dot]")
     
     responses = {
         -1: 403,

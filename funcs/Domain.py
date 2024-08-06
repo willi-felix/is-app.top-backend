@@ -30,9 +30,9 @@ class Domain:
         return valid
 
     def __add_domain_to_user(self,token: 'Token', domain: str, content: str=None,  type_: str=None, domain_id: str=None) -> bool:
-        domain = domain.replace(".","\u002E")
+        domain = domain.replace(".","[dot]")
         data = self.db.get_data(token)
-        if(domain not in data["domains"]):  
+        if(domain.replace(".","[dot]") not in data["domains"]):  
             domain_data = {
                 "ip":content,
                 "type":type_,
@@ -76,18 +76,24 @@ class Domain:
             int: -1 not owning domain, 0 passowrd or user not correct, 1 succeed
         """
         if(not token.password_correct(self.db)): return 0
-        data = self.db.get_data(token)
-        domains: dict = data.get("domains",{})
-        if(domain not in domains): return -1
+        domains: dict = self.get_user_domains(self.db,token)
+        print(domains)
+        if(domain.replace("[dot]",".") not in domains):print("NOt in domains, returning "); return -1
         headers: dict = {
             "Content-Type": "application/json",
             "Authorization": "Bearer "+self.cf_key_w, # cloudflare write token
             "X-Auth-Email": self.email
         }
-        response = requests.delete(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{data['domains'][domain]['id']}",headers=headers)
+        
+        print(f"Deleting domain {domain}")
+        print(f"Domains: {domains}")
+        response = requests.delete(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace("[dot]",".")]['id']}",headers=headers)
         if(response.status_code==200):
             del domains[domain]
+            print(f"Deleting {domain}")
+            print(f"New domain list: {domains}")
             self.db.update_data(username=token.username,key="domains",value=domains)
+        print(response.json())
         return 1
     
     def get_user_domains(self,database:'Database', token:'Token') -> dict: 
@@ -109,7 +115,10 @@ class Domain:
         if(not token.password_correct(database)): return {"Error":True,"code":"1001","message":"Username or password is invalid."}
         data = self.db.get_data(token)
         if(data.get("domains",[]).__len__()!=0):
-            return data["domains"]
+            domains = data["domains"]
+        for domain in list(domains.keys()):
+            domains[domain.replace("[dot]",".")] = domains.pop(domain)
+        return domains
         return {"Error":True,"code":"1002","message":"No domains"}
     
     def check_domain(self,domain: str, domains:dict={}, type_: str = "A") -> int:
@@ -132,21 +141,18 @@ class Domain:
         }
         if(type_ != "TXT"):
             if(not Domain.is_domain_valid(domain)): return 0
-        if(type_=="TXT"):
-            if("frii.site" in domain):
 
-                domain_parts = domain.split(".")
-                        
-                user_domain:list=domain_parts[:-2][1:]
-                req_domain:str=""
-                for domain in user_domain:
-                    part = domain
-                    if(domain!=user_domain[-1]):
-                        part += "."
-                    req_domain+=part
-                print(req_domain)
-                if(req_domain not in domains): 
-                    return -1
+        domain_parts = domain.split(".")
+        user_domain:list=domain_parts[:-2][1:]
+        req_domain:str=""
+        for domain in user_domain:
+            part = domain
+            if(domain!=user_domain[-1]):
+                part += "."
+            req_domain+=part
+        print(req_domain)
+        if(req_domain not in domains): 
+            return -1
         if(domain not in domains):
             response:Response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records?name={domain+'.frii.site'}", headers=headers) # is the domain available
             if(list(response.json().get("result",[])).__len__()!=0): 
@@ -177,14 +183,16 @@ class Domain:
         """
         if(not token.password_correct(database)): return {"Error":True,"message":"Invalid credentials", "code":1004}
         data: dict = self.db.get_data(token)
-        domains:dict = data["domains"]
-        if(domain not in domains): return {"Error":True,"message":"No permissions","code":1005}
+        domains:dict = self.get_user_domains(self.db,token)
+        print(f"Domains: {domains}")
+        print(f"Requested domain: {domain.replace("[dot]",".")}")
+        if(domain.replace("[dot]",".") not in domains): return {"Error":True,"message":"No permissions","code":1005}
         
         check_domain_status=self.check_domain(domain,domains,type_)
         if(check_domain_status!=1): return {"Error":True, "message":f"Invalid domain ({int(f'10{check_domain_status*-1}1')})", "code":int(f"10{check_domain_status*-1}1")}
         data_ = {
             "content": new_content,
-            "name": domain ,
+            "name": domain.replace("[dot]",".") ,
             "proxied": False,
             "type": type_, # from Dan: i added the type so you can add more records lol
             "comment": "Changed by "+(self.db.fernet.decrypt(str.encode(data['display-name']))).decode("utf-8") # a handy dandy lil message
@@ -194,7 +202,7 @@ class Domain:
             "Authorization": "Bearer "+self.cf_key_w,
             "X-Auth-Email": self.email
         }
-        response:Response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{data['domains'][domain]['id']}",json=data_,headers=headers,timeout=20)
+        response:Response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace("[dot]",".")]['id']}",json=data_,headers=headers,timeout=20)
         if(response.status_code==200):
             self.__add_domain_to_user(token=token,domain=domain,content=new_content,domain_id=None,type_=type_)
             return {"Error":False,"message":"Succesfully modified domain"}
@@ -210,7 +218,7 @@ class Domain:
         if(domain_stauts!=1): return {"Error":True,"code":1002,"message":f"Invalid domain ({domain_stauts})"}
         data_ = {
             "content": new_content,
-            "name": domain ,
+            "name": domain.replace("[dot]",".") ,
             "proxied": False,
             "type": type_,
             "comment": "Changed with api key" 
@@ -268,7 +276,7 @@ class Domain:
         if(type_=="CNAME" or type_=="NS"): print(f"Changing content to example.com since type is {type_}"); content="example.com"
         data_ = {
             "content": content,
-            "name": domain.replace("\u002E","."), # because 'domain' is *only* the subdomain (example.frii.site->example)
+            "name": domain.replace("[dot]","."), # because 'domain' is *only* the subdomain (example.frii.site->example)
             "proxied": False, # so cloudflare doesn't proxy the content
             "type": type_.strip(), # the type of the record.
             "comment": "Issued by "+(self.db.fernet.decrypt(str.encode(self.db.get_data(token)["display-name"]))).decode("utf-8"), # just a handy-dandy lil feature that shows the admin (me) who registered the domain
