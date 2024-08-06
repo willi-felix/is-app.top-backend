@@ -134,8 +134,11 @@ class Domain:
         if(type_=="TXT"):
             if("frii.site" in domain):
                 domain_parts:str = domain.split(".")
-                user_domain=domain_parts[:-2]
-                if(user_domain not in domains): 
+                user_domain:list=domain_parts[:-2]
+                req_domain:str=""
+                for part in user_domain:
+                    req_domain+=part
+                if(req_domain not in domains): 
                     return -1
         if(domain not in domains):
             response:Response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records?name={domain+'.frii.site'}", headers=headers) # is the domain available
