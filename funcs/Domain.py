@@ -265,7 +265,7 @@ class Domain:
             "X-Auth-Email": self.email 
         }
 
-        if(type_=="CNAME" or type_=="NS"): content="example.com"
+        if(type_=="CNAME" or type_=="NS"): print(f"Changing content to example.com since type is {type_}"); content="example.com"
         data_ = {
             "content": content,
             "name": domain.replace("\u002E","."), # because 'domain' is *only* the subdomain (example.frii.site->example)
@@ -274,9 +274,11 @@ class Domain:
             "comment": "Issued by "+(self.db.fernet.decrypt(str.encode(self.db.get_data(token)["display-name"]))).decode("utf-8"), # just a handy-dandy lil feature that shows the admin (me) who registered the domain
             "ttl": 1 # auto ttl
         }
+        print(f"Domain used for registration: {domain}")
         response = requests.post(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records",headers=headers,json=data_)
         if(response.status_code==200):
             self.__add_domain_to_user(token,domain,content,type_,response.json().get("result",{}).get("id"))
         else:
+            print(f"Cloudflare response status: {response.status_code}")
             return {"Error":True,"message":"Cloudflare did not accept domain"}
         return {"Error":False,"message":"Succesfully registered"}

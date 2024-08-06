@@ -62,6 +62,7 @@ def domain_is_available(__domain:str) -> Response:
 
 #/register-domain
 def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
+    print("Replacing . with a special character")
     __domain = __domain.replace(".","\u002E")
     if(token_.startswith("$API")):
         domain.register()
@@ -78,7 +79,7 @@ def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
             1024: 409 # domain in use
         }
         if(domain_register_status.get("Error",False)):
-            return Response(status=responses.get(domain_register_status["code"]),response=domain_register_status.get("message","No extra information given"))
+            return Response(status=responses.get(domain_register_status["code"],500),response=json.dumps(domain_register_status.get("message","No extra information given")))
         return Response(status=200)
         
 #/modify-domain
