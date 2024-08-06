@@ -236,7 +236,7 @@ def admin_get_emails(token:str,condition:dict) -> Response:
 
 def reset_password(username:str) -> Response:
     status = email.initiate_recovery(username)
-    return Response(status=200,response=status)
+    return Response(status=200,response=json.dumps({"Error": not status}))
 
 def account_recovery(code:str,password:str) -> Response:
     status = email.reset_password(code,password)

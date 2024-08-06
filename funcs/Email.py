@@ -146,7 +146,7 @@ class Email:
         self.pass_codes[random_pin] = {}
         self.pass_codes[random_pin]["expire"] = time.time()+30*60
         self.pass_codes[random_pin]["account"] = hash_username
-        return False
+        return True
     
     def reset_password(self,code:str,new_password:str) -> bool:
         print(f"New password: {new_password} codes: {self.pass_codes}")
