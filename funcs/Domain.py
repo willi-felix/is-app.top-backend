@@ -185,7 +185,7 @@ class Domain:
         data: dict = self.db.get_data(token)
         domains:dict = self.get_user_domains(self.db,token)
         print(f"Domains: {domains}")
-        print(f"Requested domain: {domain.replace("[dot]",".")}")
+        print(f"Requested domain: {domain.replace('[dot]','.')}")
         if(domain.replace("[dot]",".") not in domains): return {"Error":True,"message":"No permissions","code":1005}
         
         check_domain_status=self.check_domain(domain,domains,type_)
@@ -202,7 +202,7 @@ class Domain:
             "Authorization": "Bearer "+self.cf_key_w,
             "X-Auth-Email": self.email
         }
-        response:Response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace("[dot]",".")]['id']}",json=data_,headers=headers,timeout=20)
+        response:Response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace('[dot]','.')]['id']}",json=data_,headers=headers,timeout=20)
         if(response.status_code==200):
             self.__add_domain_to_user(token=token,domain=domain,content=new_content,domain_id=None,type_=type_)
             return {"Error":False,"message":"Succesfully modified domain"}
