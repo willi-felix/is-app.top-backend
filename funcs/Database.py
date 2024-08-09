@@ -201,7 +201,8 @@ class Database:
             "lang": data["lang"],
             "country": data["country"],
             "created": data["created"],
-            "verified": data["verified"]
+            "verified": data["verified"],
+            "permissions":data["permissions"]
         }   
         
     def is_verified(self,token:Token) -> bool:

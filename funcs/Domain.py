@@ -150,7 +150,7 @@ class Domain:
             if(domain!=user_domain[-1]):
                 part += "."
             req_domain+=part
-        print(req_domain)
+        print(f"Required part: {req_domain}")
         if(req_domain not in domains): 
             return -1
         if(domain not in domains):
