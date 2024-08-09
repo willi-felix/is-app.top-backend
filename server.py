@@ -135,7 +135,7 @@ def update_status():
 
 @app.route("/vulnerability/all",methods=["GET"])
 def get_all():
-  return get_reports(request.headers.get("X-Auth-Token"))
+  return vulnerability_all(request.headers.get("X-Auth-Token"))
 
 @app.route("/vulnerability/solve",methods=["PUT"])
 def solve():
