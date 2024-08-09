@@ -277,5 +277,11 @@ class Database:
     def join_beta(self,token:Token) -> bool:
         if(not token.password_correct(self)): return False
         self.collection.update_one({"_id":token.username},{"$set":{"beta-enroll":True}})
-        self.collection.update_one({"_id":token.username},{"$set":{"beta-joined":time.time()}})
+        self.collection.update_one({"_id":token.username},{"$set":{"beta-updated":time.time()}})
+        return True
+    
+    def leave_beta(self, token:Token) -> bool:
+        if(not token.password_correct(self)): return False
+        self.collection.update_one({"_id":token.username},{"$set":{"beta-enroll":False}})
+        self.collection.update_one({"_id":token.username},{"$set":{"beta-updated":time.time()}})
         return True

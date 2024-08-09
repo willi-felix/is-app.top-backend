@@ -254,5 +254,9 @@ def account_recovery(code:str,password:str) -> Response:
     return Response(status=200, response=json.dumps({"Error":not status}),mimetype="application/json")
 
 def join_beta(token:str) -> Response:
-    if(join_beta(Token(token))): return Response(status=200)
+    if(database.join_beta(Token(token))): return Response(status=200)
+    return Response(status=401)
+
+def leave_beta(token:str) -> Response:
+    if(database.leave_beta(Token(token))): return Response(status=200)
     return Response(status=401)

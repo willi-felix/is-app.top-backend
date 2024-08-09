@@ -174,5 +174,10 @@ def account_recovery_(Code):
 def join_beta_():
   return join_beta(request.headers.get("X-Auth-Token"))
 
+@app.route("/leave/beta",methods=["POST"])
+def leave_beta_():
+  return leave_beta(request.headers.get("X-Auth-Token"))
+
+
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)
