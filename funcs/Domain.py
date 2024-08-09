@@ -88,14 +88,13 @@ class Domain:
         print(f"Deleting domain {domain}")
         print(f"Domains: {domains}")
         response = requests.delete(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace('[dot]','.')]['id']}",headers=headers)
-        if(response.status_code==200):
+        record_not_exist = response.json().get("errors",[])[0].get("code")==81044
+        if(record_not_exist): print("WARNING: record does not exist. Deleting it in db")
+        if(response.status_code==200 or record_not_exist):
             del domains[domain]
             print(f"Deleting {domain}")
             print(f"New domain list: {domains}")
             self.db.update_data(username=token.username,key="domains",value=domains)
-        else:
-            raise ConnectionError(response.json())
-        print(response.json())
         return 1
     
     def get_user_domains(self,database:'Database', token:'Token') -> dict: 
