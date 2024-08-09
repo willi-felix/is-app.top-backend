@@ -274,3 +274,8 @@ class Database:
             response["Errors"]=failed
         return response
             
+    def join_beta(self,token:Token) -> bool:
+        if(not token.password_correct(self)): return False
+        self.collection.update_one({"_id":token.username},{"$set":{"beta-enroll":True}})
+        self.collection.update_one({"_id":token.username},{"$set":{"beta-joined":time.time()}})
+        return True

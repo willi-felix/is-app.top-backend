@@ -170,5 +170,9 @@ def reset_password_():
 def account_recovery_(Code):
   return account_recovery(Code,request.json.get("password"))
 
+@app.route("/join/beta",methods=["POST"])
+def join_beta_():
+  return join_beta(request.headers.get("X-Auth-Token"))
+
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)

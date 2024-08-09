@@ -215,8 +215,13 @@ def vulnerability_status(id:str,status:str,mode:str,d_importance:int,token:str) 
     return Response(status=statuses.get(status))
 
 #/vulnerability/all
-def vulnerability_all():
-    pass
+def vulnerability_all(token:str):
+    try:
+        status = vulnerability.get_reports(Token(token))
+    except PermissionError:
+        status = {"Error":True,"message":"Token does not have permissions to access this."}
+
+    return Response(status=200,response=json.dumps())
 
 #/create-api
 def create_api(token:str,domains:list,permissions:list,comment:str) -> Response:
@@ -247,3 +252,7 @@ def reset_password(username:str) -> Response:
 def account_recovery(code:str,password:str) -> Response:
     status = email.reset_password(code,password)
     return Response(status=200, response=json.dumps({"Error":not status}),mimetype="application/json")
+
+def join_beta(token:str) -> Response:
+    if(join_beta(Token(token))): return Response(status=200)
+    return Response(status=401)

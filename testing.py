@@ -54,6 +54,8 @@ class Test(unittest.TestCase):
             self.assertEqual(domain.delete_domain(token,random_domain),1)
         with self.subTest("Seeing if domain exists"):
             self.assertEqual(domain.get_user_domains(database,Token(os.getenv("TESTING_ACCOUNT"))).get(random_domain,None),None)
+        with self.subTest("Not allowing subdomain"):
+            self.assertEqual(domain.register("testing.testing.frii.site",random_content,Token(str(os.getenv("TESTING_ACCOUNT"))),"TXT"),{"Error":True,"code":1014,"message":"Domain is not valid. Reason No. -1"})
     def vulnerability_reporting(self):
         vuln:Vulnerability = Vulnerability(database)
         report_id:str

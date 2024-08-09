@@ -278,7 +278,7 @@ class Domain:
             "content": content,
             "name": domain.replace("[dot]","."), # because 'domain' is *only* the subdomain (example.frii.site->example)
             "proxied": False, # so cloudflare doesn't proxy the content
-            "type": type_.strip(), # the type of the record.
+            "type": type_.strip(), # the type of the record.    
             "comment": "Issued by "+(self.db.fernet.decrypt(str.encode(self.db.get_data(token)["display-name"]))).decode("utf-8"), # just a handy-dandy lil feature that shows the admin (me) who registered the domain
             "ttl": 1 # auto ttl
         }
