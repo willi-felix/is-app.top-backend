@@ -88,7 +88,8 @@ class Domain:
         print(f"Deleting domain {domain}")
         print(f"Domains: {domains}")
         response = requests.delete(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace('[dot]','.')]['id']}",headers=headers)
-        record_not_exist = response.json().get("errors",[])[0].get("code")==81044
+        if(response.json().get("success") is False):
+            if(response.json().get("errors",[{}])[0].get("code") == 81044): record_not_exist = True
         if(record_not_exist): print("WARNING: record does not exist. Deleting it in db")
         if(response.status_code==200 or record_not_exist):
             del domains[domain]
