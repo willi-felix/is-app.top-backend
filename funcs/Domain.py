@@ -93,6 +93,8 @@ class Domain:
             print(f"Deleting {domain}")
             print(f"New domain list: {domains}")
             self.db.update_data(username=token.username,key="domains",value=domains)
+        else:
+            raise ConnectionError(response.json())
         print(response.json())
         return 1
     
