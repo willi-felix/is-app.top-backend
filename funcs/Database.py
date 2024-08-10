@@ -3,7 +3,6 @@ from hashlib import sha256
 from typing import TYPE_CHECKING
 
 import bcrypt
-import grequests
 from cryptography.fernet import Fernet
 from pymongo import MongoClient
 from pymongo.collection import Collection
@@ -170,7 +169,7 @@ class Database:
         data["domains"] = {}
         data["api-keys"] = {}
         self.__save_data(data) 
-        if(not emailInstance.send_verification(username,password,email,original_username)):
+        if(not emailInstance.send_verification(Token.generate(username,password),email,original_username)):
             return {"Error":True,"code":1003,"message":"Invalid email"}
         
         return {"Error":False}
