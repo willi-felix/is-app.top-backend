@@ -223,7 +223,7 @@ def vulnerability_all(token:str):
     except PermissionError:
         status = {"Error":True,"message":"Token does not have permissions to access this."}
 
-    return Response(status=200,response=json.dumps())
+    return Response(status=200,response=json.dumps(status))
 
 #/create-api
 def create_api(token:str,domains:list,permissions:list,comment:str) -> Response:
