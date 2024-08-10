@@ -3,6 +3,7 @@ from hashlib import sha256
 from typing import TYPE_CHECKING
 
 import bcrypt
+import grequests
 from cryptography.fernet import Fernet
 from pymongo import MongoClient
 from pymongo.collection import Collection

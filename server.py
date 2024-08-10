@@ -178,6 +178,9 @@ def join_beta_():
 def leave_beta_():
   return leave_beta(request.headers.get("X-Auth-Token"))
 
+@app.route("/translation/percentages",methods=["GET"])
+def translation_percentages_():
+  return translation_percentages()
 
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)

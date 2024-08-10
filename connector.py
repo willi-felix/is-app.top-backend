@@ -4,6 +4,7 @@ from funcs import Email as _Email
 from funcs import Token as _Token
 from  funcs.Utils import *  # noqa: F403
 from funcs import Vulnerability as _Vulnerability
+from funcs import Translations as _Translations
 from funcs import Api as _Api
 from flask import Response, render_template
 import os
@@ -260,3 +261,8 @@ def join_beta(token:str) -> Response:
 def leave_beta(token:str) -> Response:
     if(database.leave_beta(Token(token))): return Response(status=200)
     return Response(status=401)
+
+
+def translation_percentages():
+     translations = _Translations.Translations(os.getenv("GH_KEY"))
+     return Response(status=200,response=json.dumps(translations.get_percentages()),mimetype="application/json")
