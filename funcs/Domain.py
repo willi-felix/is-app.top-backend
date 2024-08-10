@@ -118,9 +118,9 @@ class Domain:
         data = self.db.get_data(token)
         if(data.get("domains",[]).__len__()!=0):
             domains = data["domains"]
-        for domain in list(domains.keys()):
-            domains[domain.replace("[dot]",".")] = domains.pop(domain)
-        return domains
+            for domain in list(domains.keys()):
+                domains[domain.replace("[dot]",".")] = domains.pop(domain)
+            return domains
         return {"Error":True,"code":"1002","message":"No domains"}
     
     def check_domain(self,domain: str, domains:dict={}, type_: str = "A") -> int:

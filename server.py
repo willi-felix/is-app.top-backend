@@ -15,6 +15,10 @@ limiter = RateLimiter(app)
 CORS(app)
 handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
 
+@app.errorhandler(AssertionError)
+def handle_assert_error(error):
+  return Response(status=403,response="Invalid token",mimetype="text")
+
 @app.route("/")
 @cross_origin()
 def index():
