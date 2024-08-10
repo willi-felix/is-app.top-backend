@@ -113,7 +113,7 @@ class Email:
         print(f"Getting data from db: {time.time()-start}")
         if(data["verified"]): return False
         if("Error" in data): return False
-        return self.send_verification(data["email"],token.username,data["username"])
+        return self.send_verification(token,data["email"],data["username"])
     
     def initiate_recovery(self,username:str) -> bool:
         """Sends a password recovery email to email
