@@ -14,7 +14,7 @@ class Translations:
         for file in response.json():
             filename = file["name"].split(".")[0]
             self.languages[filename] = requests.get(file["download_url"]).json()
-            
+        self.keys = {}
         self.percentages = self.__calculate_percentages__()
     
     def __calculate_percentages__(self,use_int:bool=False):
@@ -31,12 +31,11 @@ class Translations:
                         missing_keys[language]["misses"] = 0
                         missing_keys[language]["keys"] = []
                     missing_keys[language]["misses"] += 1
-                    missing_keys[language]["keys"].append(key)
+                    missing_keys[language]["keys"].append({key:main_language.get(key)})
         print(f"Completed analysis in {float(time.time()-start)}s")
         percentages = {}
         for language in missing_keys:
-            print(missing_keys[language]["keys"])
-            
+            self.keys[language] = missing_keys[language]["keys"]
             result = 1-(missing_keys[language]["misses"]/total_keys)
             if(use_int): result = round(result*100)
             percentages[language] = result
@@ -49,3 +48,6 @@ class Translations:
             dict: {lang:0 to 1}
         """
         return self.percentages
+    
+    def get_keys(self,language:str) -> dict:
+        return self.keys[language]

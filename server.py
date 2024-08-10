@@ -182,5 +182,9 @@ def leave_beta_():
 def translation_percentages_():
   return translation_percentages()
 
+@app.route("/translation/<string:Code>/missing", methods=["GET"])
+def translation_missing_(Code):
+  return translation_missing(Code)
+
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)

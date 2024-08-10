@@ -26,6 +26,7 @@ api:Api
 domain:Domain = Domain(database,os.getenv("EMAIL"),os.getenv("CF_KEY_W"),os.getenv("CF_KEY_R"),os.getenv("ZONEID"))
 email:Email = Email((os.getenv("RESEND_KEY")),database)
 vulnerability:Vulnerability = Vulnerability(database)
+translations = None
 
 def login(__token:str) -> Response:
     if(__token is None or "|" not in __token): return Response(status=422)
@@ -264,5 +265,11 @@ def leave_beta(token:str) -> Response:
 
 
 def translation_percentages():
-     translations = _Translations.Translations(os.getenv("GH_KEY"))
-     return Response(status=200,response=json.dumps(translations.get_percentages()),mimetype="application/json")
+    global translations
+    if(translations is None): translations = _Translations.Translations(os.getenv("GH_KEY"))
+    return Response(status=200,response=json.dumps(translations.get_percentages()),mimetype="application/json")
+ 
+def translation_missing(country:str) -> Response:
+    global translations
+    if(translations is None): translations = _Translations.Translations(os.getenv("GH_KEY"))
+    return Response(status=200, response=json.dumps(translations.get_keys(country)),mimetype="application/json")
