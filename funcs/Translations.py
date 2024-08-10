@@ -31,7 +31,7 @@ class Translations:
                         missing_keys[language]["misses"] = 0
                         missing_keys[language]["keys"] = []
                     missing_keys[language]["misses"] += 1
-                    missing_keys[language]["keys"].append({key:main_language.get(key)})
+                    missing_keys[language]["keys"].append({"key":key,"ref":main_language.get(key)})
         print(f"Completed analysis in {float(time.time()-start)}s")
         percentages = {}
         for language in missing_keys:
