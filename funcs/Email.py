@@ -17,10 +17,10 @@ class Email:
         self.codes:dict={}
         self.del_codes:dict={}
         self.pass_codes:dict={}
-    def send_verification(self,token:str,target:str,display_name:str) -> bool:
+    def send_verification(self,token:Token,target:str,display_name:str) -> bool:
         random_pin = generate_random_string(32)
         self.codes[random_pin] = {}
-        self.codes[random_pin]["account"]=token
+        self.codes[random_pin]["account"]=token.string_token
         self.codes[random_pin]["expire"]=time.time()+5*60
         try:
             r = resend.Emails.send({ 
