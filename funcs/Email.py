@@ -45,7 +45,7 @@ class Email:
         """
         if(code not in self.codes): return False
         if not round(time.time()) < self.codes[code]["expire"]: return False
-        self.db.update_data(username=self.codes[code]["account"],key="verified",value=True)
+        self.db.update_data(username=Token(self.codes[code]["account"]).username,key="verified",value=True)
         del self.codes[code]
         return True
     
