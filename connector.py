@@ -46,7 +46,7 @@ def sign_up(username:str,password:str,email_:str,language:str,country:str) -> Re
         1003: 422
     }
     if status.get("Error",False):
-        return Response(status=responses.get(status),response=json.dumps(status.get("message","No extra information provided")))
+        return Response(status=responses.get(status["code"]),response=json.dumps(status.get("message","No extra information provided")))
     return Response(status=200)
 
 #/domain-is-available
