@@ -23,6 +23,7 @@ class Database:
         self.db: _Database = self.cluster["database"]
         self.collection: Collection = self.db["frii.site"]
         self.vuln_collection: Collection = self.db["vulnerabilities"]
+        self.codes: Collection = self.db["codes"]
         self.api_collection:Collection = self.db["api"]
         self.verif_codes:dict={}
         self.encryption_key=encryption_key
@@ -214,7 +215,10 @@ class Database:
         return self.get_data(token).get("permissions",{}).get(permission,default)
     
     def remove_from_cache(self,token:Token) -> None:
-        del self.data_cache[token.string_token]
+        try:
+            del self.data_cache[token.string_token]
+        except KeyError:
+            pass
     
     def __add_to_cache(self,data:list,token:Token) -> list:
         """Adds cache item

@@ -6,6 +6,7 @@ import resend
 from hashlib import sha256
 import bcrypt
 from typing import TYPE_CHECKING
+import datetime
 if TYPE_CHECKING:
     from Database import Database
     from Domain import Domain
@@ -17,11 +18,33 @@ class Email:
         self.codes:dict={}
         self.del_codes:dict={}
         self.pass_codes:dict={}
+
+        self.sync_codes()
+        
+    def sync_codes(self): 
+        cursor=self.db.codes.find()
+        results_processed:int=0
+        for result in cursor:
+            if(result.get("type",None)=="verif"):
+                results_processed+=1
+                self.codes[result["_id"]] = {}
+                self.codes[result["_id"]]["account"]=self.db.fernet.decrypt(str.encode(result["account"])).decode("utf-8")
+                self.codes[result["_id"]]["expire"]=result["expire"]
+        print(f"Processed a total of {results_processed} codes")
     def send_verification(self,token:Token,target:str,display_name:str) -> bool:
+        expire_time = 5*60
         random_pin = generate_random_string(32)
         self.codes[random_pin] = {}
         self.codes[random_pin]["account"]=token.string_token
-        self.codes[random_pin]["expire"]=time.time()+5*60
+        self.codes[random_pin]["expire"]=time.time()+expire_time
+        self.db.codes.create_index("expiresAfter",expireAfterSeconds=1)
+        self.db.codes.insert_one({
+            "_id":random_pin,
+            "type":"verif",
+            "expire":self.codes[random_pin]["expire"],
+            "account":self.db.fernet.encrypt(bytes(token.string_token,"utf-8")).decode(encoding='utf-8'),
+            "expiresAfter":datetime.datetime.now() + datetime.timedelta(minutes=5)
+        })
         try:
             r = resend.Emails.send({ 
                 "from": 'send@frii.site', 
@@ -46,8 +69,8 @@ class Email:
         if(code not in self.codes): return False
         if not round(time.time()) < self.codes[code]["expire"]: return False
         self.db.update_data(username=Token(self.codes[code]["account"]).username,key="verified",value=True)
+        self.db.remove_from_cache(Token(self.codes[code]["account"])) # invalidate cache for user
         del self.codes[code]
-        self.db.remove_from_cache(self.codes[code]["account"]) # invalidate cache for user
         return True
     
     def send_delete_email(self,email:str,token:Token,displayname:str) -> bool:
@@ -98,7 +121,7 @@ class Email:
         """
         if (code not in self.del_codes): {"Error":True,"code":1001,"message":"Invalid code"}
         if (not round(time.time()) < self.del_codes[code]["expire"]): del self.del_codes[code]; return {"Error":True,"code":1002,"message":"Code expired"}
-        return self.db.delete_account(Token.Token(self.del_codes[code]["auth-token"]),__domain)
+        return self.db.delete_account(Token(self.del_codes[code]["auth-token"]),__domain)
     
     def resend_email(self,token:Token) -> bool:
         """Resends an email to user
@@ -150,7 +173,6 @@ class Email:
         return True
     
     def reset_password(self,code:str,new_password:str) -> bool:
-        print(f"New password: {new_password} codes: {self.pass_codes}")
         if(self.pass_codes.get(code,None) is None): return False
         new_password = str(sha256(new_password.encode("utf-8")).hexdigest())
         password = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt()).decode(encoding='utf-8')
