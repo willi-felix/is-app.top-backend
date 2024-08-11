@@ -167,9 +167,10 @@ class Database:
         data["permissions"] = {} 
         data["verified"] = False 
         data["domains"] = {}
+        data["feature-flags"] = []
         data["api-keys"] = {}
         self.__save_data(data) 
-        if(not emailInstance.send_verification(Token.generate(username,password),email,original_username)):
+        if(not emailInstance.send_verification(Token(Token.generate(username,password)),email,original_username)):
             return {"Error":True,"code":1003,"message":"Invalid email"}
         
         return {"Error":False}

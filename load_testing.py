@@ -11,4 +11,6 @@ def get(path:str) -> int:
     start = time.time()
     requests.get(f"localhost:5000/{path}",headers={"X-Auth-Token":os.getenv("TESTING_ACCOUNT")})
     return time.time()-start
+
+
     
