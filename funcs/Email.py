@@ -47,6 +47,7 @@ class Email:
         if not round(time.time()) < self.codes[code]["expire"]: return False
         self.db.update_data(username=Token(self.codes[code]["account"]).username,key="verified",value=True)
         del self.codes[code]
+        self.db.remove_from_cache(self.codes[code]["account"]) # invalidate cache for user
         return True
     
     def send_delete_email(self,email:str,token:Token,displayname:str) -> bool:
