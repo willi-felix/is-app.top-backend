@@ -168,7 +168,7 @@ class Database:
         data["permissions"] = {"max-domains":3} 
         data["verified"] = False 
         data["domains"] = {}
-        data["feature-flags"] = []
+        data["feature-flags"] = {}
         data["api-keys"] = {}
         data["credits"] = 15
         self.__save_data(data) 
