@@ -289,3 +289,12 @@ def credits_convert(token:str) -> Response:
     except AttributeError:
         return Response(status=403,response="Not enough credits",mimetype="text")
     return Response(status=200)
+
+
+def credits_get(token:str) -> Response:
+    if not Token(token).password_correct(): return Response(status=401)
+    try:
+        status = credits.get(Token(token))
+    except PermissionError:
+        return Response(status=403)
+    return Response(status=200,response=json.dumps({"credits":status}), mimetype="application/json")

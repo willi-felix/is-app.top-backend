@@ -194,5 +194,9 @@ def translation_missing_(Code):
 def credits_convert_():
   return credits_convert(request.headers.get("X-Auth-Token"))
 
+@app.route("/credits/get",methods=["GET"])
+def credits_get_():
+  return credits_get(request.headers.get("X-Auth-Token"))
+
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)
