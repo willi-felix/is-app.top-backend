@@ -292,7 +292,7 @@ def credits_convert(token:str) -> Response:
 
 
 def credits_get(token:str) -> Response:
-    if not Token(token).password_correct(): return Response(status=401)
+    if not Token(token).password_correct(database): return Response(status=401)
     try:
         status = credits.get(Token(token))
     except PermissionError:
