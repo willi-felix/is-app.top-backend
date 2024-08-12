@@ -6,6 +6,7 @@ from funcs import Domain as _Domain
 from funcs import Vulnerability as _Vulnerability
 from funcs import Utils
 from funcs import Email as _Email
+from funcs import Logger as _Logger
 import os
 
 load_dotenv()

@@ -165,11 +165,12 @@ class Database:
         data['accessed-from'] = []
         data["created"] = time_signed_up
         data["last-login"] = time.time() 
-        data["permissions"] = {} 
+        data["permissions"] = {"max-domains":3} 
         data["verified"] = False 
         data["domains"] = {}
         data["feature-flags"] = []
         data["api-keys"] = {}
+        data["credits"] = 15
         self.__save_data(data) 
         if(not emailInstance.send_verification(Token(Token.generate(username,password)),email,original_username)):
             return {"Error":True,"code":1003,"message":"Invalid email"}

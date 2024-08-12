@@ -190,5 +190,9 @@ def translation_percentages_():
 def translation_missing_(Code):
   return translation_missing(Code)
 
+@app.route("/credits/convert",methods=["POST"])
+def credits_convert_():
+  return credits_convert(request.headers.get("X-Auth-Token"))
+
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)

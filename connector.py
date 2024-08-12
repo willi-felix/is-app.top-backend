@@ -7,6 +7,8 @@ from funcs import Vulnerability as _Vulnerability
 from funcs import Translations as _Translations
 from funcs import Api as _Api
 from flask import Response, render_template
+from funcs import Logger as _Logger
+from funcs import Credits as _Credits
 import os
 from dotenv import load_dotenv
 import json
@@ -16,6 +18,7 @@ Domain = _Domain.Domain
 Email = _Email.Email
 Token = _Token.Token
 Api = _Api.Api
+Credits = _Credits.Credits
 Vulnerability = _Vulnerability.Vulnerability
 
 load_dotenv()
@@ -26,7 +29,10 @@ api:Api
 domain:Domain = Domain(database,os.getenv("EMAIL"),os.getenv("CF_KEY_W"),os.getenv("CF_KEY_R"),os.getenv("ZONEID"))
 email:Email = Email((os.getenv("RESEND_KEY")),database)
 vulnerability:Vulnerability = Vulnerability(database)
+credits = Credits(database)
 translations = None
+l = _Logger.Logger("connector.py")
+
 
 def login(__token:str) -> Response:
     if(__token is None or "|" not in __token): return Response(status=422)
@@ -273,3 +279,13 @@ def translation_missing(country:str) -> Response:
     global translations
     if(translations is None): translations = _Translations.Translations(os.getenv("GH_KEY"))
     return Response(status=200, response=json.dumps(translations.get_keys(country)),mimetype="application/json")
+
+#/credits/cover POST
+def credits_convert(token:str) -> Response:
+    try:
+        status = credits.convert(Token(token))
+    except PermissionError:
+        return Response(status=401,response="Invalid token",mimetype="text")
+    except AttributeError:
+        return Response(status=403,response="Not enough credits",mimetype="text")
+    return Response(status=200)
