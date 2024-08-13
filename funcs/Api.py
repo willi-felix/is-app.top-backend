@@ -16,7 +16,6 @@ class Permission(Enum):
     DETAILS=4
 
 class Api:
-    @staticmethod
     def create(token:'Token', permissions_: list, domains: list, comment: str, database:Database) -> str:
         """Creates an API Key
 
