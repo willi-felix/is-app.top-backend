@@ -17,7 +17,6 @@ class Domain:
         self.cf_key_r = cf_key_r
         self.zone_id:str=zone_id
     
-    @staticmethod
     @l.time
     def is_domain_valid(domain_: str) -> bool:
         """Checks if domain is vlaid
