@@ -32,7 +32,7 @@ class Email:
                 self.codes[result["_id"]]["expire"]=result["expire"]
         print(f"Processed a total of {results_processed} codes")
     def send_verification(self,token:Token,target:str,display_name:str) -> bool:
-        expire_time = 5*60
+        expire_time = 45*60
         random_pin = generate_random_string(32)
         self.codes[random_pin] = {}
         self.codes[random_pin]["account"]=token.string_token
@@ -51,7 +51,7 @@ class Email:
                 "to": target, 
                 "subject": "Verify your account",
                 "html": 
-                '<html><h1>Hello $username!</h1> <h2>Click <a href="https://api.frii.site/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 5 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://api.frii.site/verification/$code</div></html>'.replace("$username",display_name).replace("$code",random_pin)
+                '<html><h1>Hello $username!</h1> <h2>Click <a href="https://api.frii.site/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 45 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://api.frii.site/verification/$code</div></html>'.replace("$username",display_name).replace("$code",random_pin)
             })
         except resend.exceptions.ResendError:
             return False
