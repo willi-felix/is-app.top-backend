@@ -36,8 +36,7 @@ class Token:
         status:bool = bcrypt.checkpw(self.password.encode("utf-8"), data["password"].encode("utf-8"))
         if(status): db.user_logged_in(self)
         return status
-    
-    @staticmethod
+
     def generate(username:str, password:str) -> str:
         return f"{sha256(password.encode('utf-8'))}|{sha256(username.encode('utf-8'))}"
 

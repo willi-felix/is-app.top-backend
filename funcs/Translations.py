@@ -21,6 +21,7 @@ class Translations:
         self.keys = {}
         self.percentages = self.__calculate_percentages__()
     
+    @l.time
     def __calculate_percentages__(self,use_int:bool=False):
         main_language =  self.languages["en"]
         missing_keys:dict = {}
@@ -36,7 +37,6 @@ class Translations:
                         missing_keys[language]["keys"] = []
                     missing_keys[language]["misses"] += 1
                     missing_keys[language]["keys"].append({"key":key,"ref":main_language.get(key)})
-        print(f"Completed analysis in {float(time.time()-start)}s")
         percentages = {}
         for language in missing_keys:
             self.keys[language] = missing_keys[language]["keys"]
