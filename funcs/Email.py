@@ -1,6 +1,7 @@
 from __future__ import annotations
 from .Utils import generate_random_string
 from .Token import Token
+from .Logger import Logger
 import time
 import resend
 from hashlib import sha256
@@ -11,6 +12,9 @@ if TYPE_CHECKING:
     from Database import Database
     from Domain import Domain
     
+    
+l = Logger("Email.py")
+
 class Email:
     def __init__(self,api_key:str,db):
         resend.api_key = api_key
@@ -21,6 +25,7 @@ class Email:
 
         self.sync_codes()
         
+    @l.time
     def sync_codes(self): 
         cursor=self.db.codes.find()
         results_processed:int=0
@@ -30,7 +35,7 @@ class Email:
                 self.codes[result["_id"]] = {}
                 self.codes[result["_id"]]["account"]=self.db.fernet.decrypt(str.encode(result["account"])).decode("utf-8")
                 self.codes[result["_id"]]["expire"]=result["expire"]
-        print(f"Processed a total of {results_processed} codes")
+        l.info(f"Processed a total of {results_processed} codes")
     def send_verification(self,token:Token,target:str,display_name:str) -> bool:
         expire_time = 45*60
         random_pin = generate_random_string(32)

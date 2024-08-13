@@ -1,5 +1,9 @@
 import requests
 import time
+from .Logger import Logger
+
+l = Logger("Translations.py")
+
 class Translations:
     def __init__(self,api_key:str):
         self.api_key = api_key

@@ -12,6 +12,9 @@ from pymongo.database import Database as _Database
 # pylint: disable=relative-beyond-top-level
 from .Email import Email
 from .Token import Token
+from .Logger import Logger
+
+l = Logger("Database.py")
 
 if TYPE_CHECKING:
     from Domain import Domain
@@ -29,7 +32,8 @@ class Database:
         self.encryption_key=encryption_key
         self.fernet = Fernet(bytes(encryption_key,"utf-8"))
         self.data_cache:dict={}
-        
+    
+    @l.time
     def check_database_for_domain(self,domain:str) -> bool:
         cursor:Cursor
         results_found:int=0
@@ -38,44 +42,52 @@ class Database:
             results_found+=1
         return results_found!=0
     
+    @l.time
     def __save_data(self,data: dict) -> None:
         """
         Saves data to mongodb
         """
         assert(type(data) is dict)
         self.collection.insert_one(data)
-        
+
+    
+    @l.time
     def update_data(self,username: str, key: str, value: any) -> None:
         self.collection.update_one(
             {"_id": username},
             {"$set":{key:value},},
             upsert=False
         )
+        
 
     def user_logged_in(self,user:Token):
         self.update_data(username=user.username,key="last-login",value=time.time())
 
+    @l.time
     def __delete_user_from_db(self,user:Token) -> bool:
         if(not user.password_correct(self)): return False
         self.remove_from_cache(user)
         self.collection.delete_one({"_id":user.username})
         return True
 
+    @l.time
     def add_domain(self,user: Token, domain_name:str, domain:dict) -> bool:
-        print(f"Adding domain {domain_name} to users db")
+        l.info(f"Adding domain {domain_name} to user")
         if(not user.password_correct(self)): return False
         self.remove_from_cache(user)
         self.collection.update_one({"_id":user.username},{"$set":{f"domains.{domain_name}":domain}})
         return True
     
+    @l.time
     def modify_domain(self,user:Token,domain: str, domain_data:dict) -> bool:
         domain = domain.replace(".","[dot]")
+        l.info(f"Modifying domain {domain}")
         if(not user.password_correct(self)): return False
         assert(domain!=None)
         self.remove_from_cache(user)
-        
         self.collection.update_one({"_id":user.username},{"$set":{f"domains.{domain}":domain_data}})
     
+    @l.time
     def get_data(self,user:Token) -> dict:
         if(self.__get_cache(user) is not None): 
             return self.__get_cache(user)
@@ -89,7 +101,9 @@ class Database:
         if(results_found.__len__()!=0):
             return results_found[0]
         else:
+            l.warn(f"`get_data` no matches for username {user.username}")
             raise IndexError("No matches for username.")
+    @l.time
     def __user_exists(self,user: str) -> bool:
         cursor:Cursor
         results:int=0
@@ -97,17 +111,24 @@ class Database:
         for _ in cursor:
             results+=1
         return results!=0
+    
+    @l.time
     def __email_taken(self,email:str) -> bool:
-        # WARNING: Does not actually work since fernet encryption uses system time
+        email_hash = str(sha256((email+"supahcool").encode("utf-8")).hexdigest())
+        l.info(f"Checking if email {email_hash} is in use")
         cursor:Cursor
         results:int=0
-        cursor = self.collection.find({"email-hash":str(sha256((email+"supahcool").encode("utf-8")).hexdigest())})
+        cursor = self.collection.find({"email-hash":email_hash})
         for _ in cursor:
             results +=1
         return results != 0
+    
     def admin_get_basic_data(self,token:Token,id:str) -> dict:
-        if(not token.password_correct(self)): return {"Error":True,"code":1000}
+        if(not token.password_correct(self)): 
+            l.permission(f"User {token.username} tried to access `admin_get_basic_data` (invalid password)")
+            return {"Error":True,"code":1000}
         if(not self.get_data(token).get("permissions").get("userdetails",False)):
+            l.permission(f"User {token.username} tried to access `admin_get_basic_data` (no permissions)")
             return {"Error":True,"code":1001,"message":"Token does not have permissions"} 
         raw_data:dict = self.collection.find_one(id)
         return {
@@ -117,15 +138,21 @@ class Database:
         }
         
     def admin_get_emails(self,token:Token,condition:dict) -> dict:
-        if(not token.password_correct(self)): return {"Error":True,"code":1000}
+        if(not token.password_correct(self)):
+            l.permission(f"User {token.username} tried to access `admin_get_basic_data` (invalid password)")
+            return {"Error":True,"code":1000}
+        
         if(not self.get_data(token).get("permissions").get("userdetails",False)):
+            l.permission(f"User {token.username} tried to access `admin_get_basic_data` (no permissions)")
             return {"Error":True,"code":1001,"message":"Token does not have permissions"} 
+        
         results = self.collection.find(condition)
         emails:list=[]
         for result in results:
             emails.append(self.fernet.decrypt(str.encode(result["email"])).decode("utf-8"))
         return {"Error":False,"emails":emails}
             
+    @l.time
     def create_user(self,username: str, password: str, email: str, language: str, country, time_signed_up, emailInstance:'Email') -> dict:
         """Creates a new user
 
@@ -151,9 +178,12 @@ class Database:
         original_username=username
         username = str(sha256(username.encode("utf-8")).hexdigest())
         password: str = str(sha256(password.encode("utf-8")).hexdigest())
-        
-        if self.__user_exists(username): return {"Error":True,"code":1001,"message":"User already exists"}
-        if self.__email_taken(email): return {"Error":True,"code":1002,"message":"Email aready in use"}
+        if self.__user_exists(username):
+            l.warn("`create_user` Username is already in use")
+            return {"Error":True,"code":1001,"message":"User already exists"}
+        if self.__email_taken(email):
+            l.warn("`create_user` Email is already in use")
+            return {"Error":True,"code":1002,"message":"Email aready in use"}
         data: dict = {}
         data["_id"] = username
         data['email'] = (self.fernet.encrypt(bytes(email,'utf-8')).decode(encoding='utf-8')) # the encrypted email, but it is less encrypted
@@ -173,15 +203,19 @@ class Database:
         data["credits"] = 15
         self.__save_data(data) 
         if(not emailInstance.send_verification(Token(Token.generate(username,password)),email,original_username)):
+            l.warn("`create_user` Invalid email")
             return {"Error":True,"code":1003,"message":"Invalid email"}
         
         return {"Error":False}
     
     def get_gpdr(self,token:Token):
-        if(not token.password_correct(self)): return {"Error":"Invalid credentials","code":"1001"}
+        if(not token.password_correct(self)):
+            l.info("`get_gpdr` Password not correct")
+            return {"Error":"Invalid credentials","code":"1001"}
         a = self.get_data(token)
         return {"user_id":a["_id"],"location":a["country"],"creation_date":a["created"],"domains":a["domains"],"lang":a["lang"],"last_login":a["last-login"],"permissions":a["permissions"],"verified":a["verified"]}
     
+    @l.time
     def get_basic_user_data(self,token:Token) -> dict:
         """Gets the basic userdate
 
@@ -196,7 +230,9 @@ class Database:
             codes:
                 1001 - Invalid credentials
         """
-        if(not token.password_correct(self)): return {"Error":True,"code":1001,"message":"Invalid credentials"}
+        if(not token.password_correct(self)):
+            l.info("`get_basic_user_data` Invalid credentials")
+            return {"Error":True,"code":1001,"message":"Invalid credentials"}
         data = self.get_data(token)
         return {
             "username": (self.fernet.decrypt(str.encode(data["display-name"]))).decode("utf-8"),
@@ -207,20 +243,26 @@ class Database:
             "verified": data["verified"],
             "permissions":data["permissions"]
         }   
-        
+    
+    @l.time
     def is_verified(self,token:Token) -> bool:
         data = self.get_basic_user_data(token)
         return (data.get("verified",False))
     
+    @l.time
     def get_permission(self, token:Token,permission:str,default:any)->any:
         return self.get_data(token).get("permissions",{}).get(permission,default)
     
+    @l.time
     def remove_from_cache(self,token:Token) -> None:
         try:
             del self.data_cache[token.string_token]
+            l.trace(f"Deleted user {token.username} from cache")
         except KeyError:
+            l.warn(f"Couldn't delete {token.username} from cache")
             pass
     
+    @l.time
     def __add_to_cache(self,data:list,token:Token) -> list:
         """Adds cache item
 
@@ -231,12 +273,14 @@ class Database:
         Returns:
             list: given data
         """
+        l.trace(f"Adding {token.username} to cache")
         self.data_cache[token.string_token] = {
             "expire": time.time()+30,
             "data": data
         }
         return data
     
+    @l.time
     def __get_cache(self,token:Token) -> list:
         """Gets data from cache
 
@@ -246,8 +290,13 @@ class Database:
         Returns:
             list: Cached user data
         """
-        if(token.string_token not in self.data_cache): return None
-        if(self.data_cache.get(token.string_token,{}).get("expire",0) < time.time()): self.remove_from_cache(token); return None
+        if(token.string_token not in self.data_cache):
+            l.trace(f"User {token.username} not found in cache")
+            return None
+        if(self.data_cache.get(token.string_token,{}).get("expire",0) < time.time()):
+            l.info(f"Cache for user {token.username} has expired")
+            self.remove_from_cache(token)
+            return None
         return self.data_cache.get(token.string_token,{}).get("data")
     
     def delete_account(self,token:Token, domain:'Domain') -> dict:
@@ -263,7 +312,9 @@ class Database:
             success:
                 `{"Error":False}` 
         """
-        if(not token.password_correct(self)): return {"Error":True,"code":1001}
+        if(not token.password_correct(self)):
+            l.info("`delete_account` password incorrect")
+            return {"Error":True,"code":1001}
         failed:dict={}
         user_domains:dict=self.get_data(token)["domains"]
         for key, _ in  user_domains.items():
@@ -277,16 +328,19 @@ class Database:
             
         response:dict={"Error":False}
         if(failed.__len__()!=0):
+            l.warn(f"Account deletion for user {token.username} failed ({failed})")
             response["Error"]=True,
             response["Errors"]=failed
         return response
             
+    @l.time
     def join_beta(self,token:Token) -> bool:
         if(not token.password_correct(self)): return False
         self.collection.update_one({"_id":token.username},{"$set":{"beta-enroll":True}})
         self.collection.update_one({"_id":token.username},{"$set":{"beta-updated":time.time()}})
         return True
     
+    @l.time
     def leave_beta(self, token:Token) -> bool:
         if(not token.password_correct(self)): return False
         self.collection.update_one({"_id":token.username},{"$set":{"beta-enroll":False}})

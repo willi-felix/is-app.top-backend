@@ -27,7 +27,7 @@ database:Database = Database(os.getenv("MONGODB_URL"),os.getenv("ENC_KEY"))
 token:Token
 api:Api
 domain:Domain = Domain(database,os.getenv("EMAIL"),os.getenv("CF_KEY_W"),os.getenv("CF_KEY_R"),os.getenv("ZONEID"))
-email:Email = Email((os.getenv("RESEND_KEY")),database)
+email:Email = Email(os.getenv("RESEND_KEY"),database)
 vulnerability:Vulnerability = Vulnerability(database)
 credits = Credits(database)
 translations = None
