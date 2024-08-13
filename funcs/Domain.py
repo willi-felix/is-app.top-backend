@@ -137,6 +137,7 @@ class Domain:
             int: -1 - does not own a part of the domain (ex: mydomain.another.frii.site, where user does NOT own another.frii.site)
             int: -2 - domain is already in use
         """
+        domain = domain.replace("[dot]",".")
         headers = {
             "X-Auth-Email": self.email, 
             "Authorization": "Bearer "+self.cf_key_r
