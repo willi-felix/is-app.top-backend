@@ -155,6 +155,7 @@ class Domain:
             req_domain+=part
         print(f"Required part: {req_domain}")
         if(req_domain!="" and req_domain not in domains): 
+            print(f"Required domain is not empty and user does not own {req_domain} ({domain})")
             return -1
         if(domain not in domains):
             response:Response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records?name={domain+'.frii.site'}", headers=headers) # is the domain available
