@@ -177,7 +177,7 @@ class Domain:
             l.info(f"User needs to own {req_domain} before registering {domain}!")
             return -1
         if(domain not in domains):
-            response:Response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records?name={domain.replace("[dot]",".")+'.frii.site'}", headers=headers) # is the domain available
+            response:Response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records?name={domain.replace('[dot]','.')+'.frii.site'}", headers=headers) # is the domain available
             if(list(response.json().get("result",[])).__len__()!=0): 
                 l.info(f"Domain {domain} is not available on CloudFlare")
                 return -2
