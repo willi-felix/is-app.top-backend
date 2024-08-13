@@ -86,7 +86,6 @@ class Domain:
         }
         
         print(f"Deleting domain {domain}")
-        print(f"Domains: {domains}")
         response = requests.delete(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace('[dot]','.')]['id']}",headers=headers)
         if(response.json().get("success") is False):
             if(response.json().get("errors",[{}])[0].get("code") == 81044): record_not_exist = True
@@ -153,13 +152,13 @@ class Domain:
             if(domain!=user_domain[-1]):
                 part += "."
             req_domain+=part
-        print(f"Required part: {req_domain}")
         if(req_domain!="" and req_domain not in domains): 
             print(f"Required domain is not empty and user does not own {req_domain} ({domain})")
             return -1
         if(domain not in domains):
-            response:Response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records?name={domain+'.frii.site'}", headers=headers) # is the domain available
+            response:Response = requests.get(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records?name={domain.replace("[dot]",".")+'.frii.site'}", headers=headers) # is the domain available
             if(list(response.json().get("result",[])).__len__()!=0): 
+                print(f"Domain {domain} not available on cloudflare ")
                 return -2
         return 1
 
@@ -185,10 +184,10 @@ class Domain:
                 10x1: Invalid domain (x being reason, consult `self.check_domain()`)
                 1xxx: Cloudflare api issue
         """
+        print(f"Modifying domain {domain} with the type {type_} content being {new_content}")
         if(not token.password_correct(database)): return {"Error":True,"message":"Invalid credentials", "code":1004}
         data: dict = self.db.get_data(token)
         domains:dict = self.get_user_domains(self.db,token)
-        print(f"Domains: {domains}")
         print(f"Requested domain: {domain.replace('[dot]','.')}")
         if(domain.replace("[dot]",".") not in domains): return {"Error":True,"message":"No permissions","code":1005}
         
