@@ -14,7 +14,11 @@ from .Email import Email
 from .Token import Token
 from .Logger import Logger
 
-l = Logger("Database.py")
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+l = Logger("Database.py",os.getenv("DC_WEBHOOK"),os.getenv("DC_TRACE"))
 
 if TYPE_CHECKING:
     from Domain import Domain
@@ -26,6 +30,7 @@ class Database:
         self.db: _Database = self.cluster["database"]
         self.collection: Collection = self.db["frii.site"]
         self.vuln_collection: Collection = self.db["vulnerabilities"]
+        self.translation_collection: Collection = self.db["translations"]
         self.codes: Collection = self.db["codes"]
         self.api_collection:Collection = self.db["api"]
         self.verif_codes:dict={}

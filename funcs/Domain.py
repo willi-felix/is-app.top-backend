@@ -6,9 +6,11 @@ import string
 
 from .Logger import Logger 
 from typing import TYPE_CHECKING
+import os
+from dotenv import load_dotenv
+load_dotenv()
     
-    
-l:Logger = Logger("Domain.py")
+l:Logger = Logger("Domain.py", os.getenv("DC_WEBHOOK"),os.getenv("DC_TRACE"))
 class Domain:
     def __init__(self,db:'Database',email:str,cf_key_w:str, cf_key_r,zone_id):
         self.db:'Database'=db

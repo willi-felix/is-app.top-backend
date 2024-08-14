@@ -13,6 +13,8 @@ import os
 from dotenv import load_dotenv
 import json
 import time
+import requests
+
 Database = _Database.Database
 Domain = _Domain.Domain
 Email = _Email.Email
@@ -31,7 +33,7 @@ email:Email = Email(os.getenv("RESEND_KEY"),database)
 vulnerability:Vulnerability = Vulnerability(database)
 credits = Credits(database)
 translations = None
-l = _Logger.Logger("connector.py")
+l = _Logger.Logger("connector.py", os.getenv("DC_WEBHOOK"),os.getenv("DC_TRACE"))
 
 
 def login(__token:str) -> Response:
@@ -70,7 +72,6 @@ def domain_is_available(__domain:str) -> Response:
 
 #/register-domain
 def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
-    print("Replacing . with a special character")
     __domain = __domain.replace(".","[dot]")
     if(token_.startswith("$API")):
         domain.register()
@@ -269,16 +270,23 @@ def leave_beta(token:str) -> Response:
     if(database.leave_beta(Token(token))): return Response(status=200)
     return Response(status=401)
 
+def __init_translations():
+    global translations
+    if(translations is None): translations = _Translations.Translations(os.getenv("GH_KEY"),database)
+    
 
 def translation_percentages():
-    global translations
-    if(translations is None): translations = _Translations.Translations(os.getenv("GH_KEY"))
+    __init_translations()
     return Response(status=200,response=json.dumps(translations.get_percentages()),mimetype="application/json")
  
 def translation_missing(country:str) -> Response:
-    global translations
-    if(translations is None): translations = _Translations.Translations(os.getenv("GH_KEY"))
+    __init_translations()
     return Response(status=200, response=json.dumps(translations.get_keys(country)),mimetype="application/json")
+
+def translation_contribute(token:str,lang:str,contributions:list) -> Response:
+    __init_translations()
+    if(translations.contribute(lang,contributions,Token(token))): return Response(status=200)
+    return Response(status=401)
 
 #/credits/cover POST
 def credits_convert(token:str) -> Response:
@@ -290,6 +298,9 @@ def credits_convert(token:str) -> Response:
         return Response(status=403,response="Not enough credits",mimetype="text")
     return Response(status=200)
 
+def status() -> Response:
+    
+    return Response(status=204)
 
 def credits_get(token:str) -> Response:
     if not Token(token).password_correct(database): return Response(status=401)

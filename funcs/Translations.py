@@ -1,17 +1,23 @@
 import requests
 import time
 from .Logger import Logger
+from .Token import Token
+from .Database import Database
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-l = Logger("Translations.py")
+l = Logger("Translations.py",os.getenv("DC_WEBHOOK"),os.getenv("DC_TRACE"))
 
 class Translations:
-    def __init__(self,api_key:str):
+    def __init__(self,api_key:str,database:Database):
         self.api_key = api_key
         headers_ = {
             "Accept": "application/json",
             "Authorization":f"Bearer {self.api_key}",
             "X-GitHub-Api-Version":"2022-11-28"
         }
+        self.db:Database = database
         response = requests.get("https://api.github.com/repos/ctih1/frii.site-frontend/contents/src/locales",headers=headers_)
         
         self.languages: dict = {}
@@ -26,17 +32,22 @@ class Translations:
         main_language =  self.languages["en"]
         missing_keys:dict = {}
         total_keys = 0
-        start:float = time.time()
-        for key in main_language:
-            total_keys+=1
-            for language in self.languages:
+
+        for language in self.languages:
+            preview_keys:dict = self.db.translation_collection.find_one({"_id":language})
+            if(preview_keys is None or preview_keys.get("keys",None) is None):
+                l.warn(f"`preview_keys` doesn't exist for language {language}")
+                preview_keys = {}
+            for key in main_language:
+                total_keys+=1
                 if key not in self.languages[language]:
                     if language not in missing_keys:
                         missing_keys[language] = {}
                         missing_keys[language]["misses"] = 0
                         missing_keys[language]["keys"] = []
-                    missing_keys[language]["misses"] += 1
-                    missing_keys[language]["keys"].append({"key":key,"ref":main_language.get(key)})
+                    if(key not in preview_keys.get("keys",{})):
+                        missing_keys[language]["misses"] += 1
+                        missing_keys[language]["keys"].append({"key":key,"ref":main_language.get(key)})
         percentages = {}
         for language in missing_keys:
             self.keys[language] = missing_keys[language]["keys"]
@@ -55,3 +66,36 @@ class Translations:
     
     def get_keys(self,language:str) -> dict:
         return self.keys[language]
+    
+    def contribute(self, lang:str, keys: list,token:Token) -> bool:
+        """Contributes to a specified language
+
+        Args:
+            lang (str): Two letter language code (German -> de, English -> en)
+            keys (list): {key:string,val:string} where key is the translation key, and val being the translation
+
+        Returns:
+            bool: If contributed
+        """
+        
+        language = {}
+        
+        if(not token.password_correct(self.db)): 
+            l.info(f"Not adding translations for language {lang} because username and password are not correct")
+            return False
+        
+        for translation in keys:
+            if(translation["val"]!=""):
+                try:
+                    self.keys[lang].pop(list(self.keys[lang]).index({"key":translation["key"], "ref":self.languages["en"].get(translation["key"])}))
+                except ValueError:
+                    l.warn(f"Got a value error trying to delete key {translation['key']}")
+                language["keys."+translation["key"]] = {}
+                language["keys."+translation["key"]]["val"] = translation["val"]
+                language["keys."+translation["key"]]["contributor"] = token.username
+            
+        self.db.translation_collection.update_one(
+            {"_id":lang},
+            {"$set": language},upsert=True
+        ) # upsert creates a new document if one does not exist
+        return True

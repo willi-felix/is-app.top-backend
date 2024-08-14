@@ -12,8 +12,11 @@ if TYPE_CHECKING:
     from Database import Database
     from Domain import Domain
     
-    
-l = Logger("Email.py")
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+l = Logger("Email.py",os.getenv("DC_WEBHOOK"),os.getenv("DC_TRACE"))
 
 class Email:
     def __init__(self,api_key:str,db):
