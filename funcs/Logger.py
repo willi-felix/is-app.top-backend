@@ -21,6 +21,7 @@ class Logger:
         return values.get(importance,default)
         
     async def __send_to_webhook(self,importance:str,message:str) -> None:
+        return
         try:
             if(importance in ["warning","permission","error","critical"]):
                 url = self.webhook
