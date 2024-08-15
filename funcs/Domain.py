@@ -106,7 +106,10 @@ class Domain:
         if(record_not_exist): 
             l.warn("Record does not exist on CloudFlare, but does on Database. Ignoring...")
         if(response.status_code==200 or record_not_exist):
-            del domains[domain]
+            try:
+                del domains[domain]
+            except IndexError:
+                l.error(f"Could not delete domain {domain} (IndexError)")
             l.info(f"`delete_domain` succesfully deleted {domain}")
             self.db.update_data(username=token.username,key="domains",value=domains)
         else:
