@@ -167,7 +167,7 @@ class Domain:
                 return 0
 
         domain_parts = domain.split(".")
-        user_domain:list=domain_parts[:-2][1:]
+        user_domain:list=domain_parts[:-2][1:][-1]
         req_domain:str=""
         for domain in user_domain:
             part = domain
