@@ -293,9 +293,9 @@ def credits_convert(token:str) -> Response:
     try:
         status = credits.convert(Token(token))
     except PermissionError:
-        return Response(status=401,response="Invalid token",mimetype="text")
+        return Response(status=401,response="Invalid token",mimetype="text/plain")
     except AttributeError:
-        return Response(status=403,response="Not enough credits",mimetype="text")
+        return Response(status=403,response="Not enough credits",mimetype="text/plain")
     return Response(status=200)
 
 def status() -> Response:

@@ -52,7 +52,6 @@ class Logger:
         asyncio.run(self.__send_to_webhook("warning",message))
     
     def permission(self,message:str) -> None:
-        
         print(f"{self.filename} - PERMISSION: {message}")
         asyncio.run(self.__send_to_webhook("permission",message))
 

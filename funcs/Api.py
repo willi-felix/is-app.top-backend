@@ -29,7 +29,6 @@ class Api:
             str: API Key
         """
         api_key:str="$APIV1="+generate_random_string(32)
-        print("Normal key: " + api_key)
         user_domains = database.get_data(token).get("domains",{})
         for domain in domains:
             if(domain not in list(user_domains.keys())):
@@ -47,7 +46,6 @@ class Api:
     def __init__(self,key:str,database:Database)->None:
         self.key:str=key
         self.perms_class = Permission
-        print("Normal key: " + self.key)
         self.db=database
         self.__search_key = sha256((self.key+"frii.site").encode("utf-8")).hexdigest() # frii.site used for salting
         self.valid=True
