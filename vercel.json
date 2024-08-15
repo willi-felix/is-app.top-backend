@@ -24,7 +24,7 @@
         }
       ],
     "functions": {
-      "/": {
+      "/register-domain/": {
         "maxDuration": 10
       }
     }
