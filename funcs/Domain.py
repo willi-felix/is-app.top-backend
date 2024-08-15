@@ -99,7 +99,7 @@ class Domain:
             "Authorization": "Bearer "+self.cf_key_w, # cloudflare write token
             "X-Auth-Email": self.email
         }
-        
+        record_not_exist = False
         response = requests.delete(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace('[dot]','.')]['id']}",headers=headers)
         if(response.json().get("success") is False):
             if(response.json().get("errors",[{}])[0].get("code") == 81044): record_not_exist = True
