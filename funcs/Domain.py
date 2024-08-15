@@ -108,8 +108,8 @@ class Domain:
         if(response.status_code==200 or record_not_exist):
             try:
                 del domains[domain]
-            except IndexError:
-                l.error(f"Could not delete domain {domain} (IndexError)")
+            except KeyError:
+                l.error(f"Could not delete domain {domain} (KeyError)")
             l.info(f"`delete_domain` succesfully deleted {domain}")
             self.db.update_data(username=token.username,key="domains",value=domains)
         else:
