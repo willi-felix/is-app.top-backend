@@ -17,7 +17,7 @@ handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
 
 @app.errorhandler(AssertionError)
 def handle_assert_error(error):
-  return Response(status=403,response="Invalid token",mimetype="text")
+  return Response(status=403,response="Invalid token",mimetype="text/plain")
 
 @app.route("/")
 @cross_origin()
@@ -151,7 +151,6 @@ def delete_vuln():
 
 @app.route("/create-api",methods=["POST"])
 def create_api_():
-  print(request.headers)
   return create_api(request.headers.get("X-Auth-Token"),request.json.get("domains"),request.json.get("perms"),request.json.get("comment"))
 
 @app.route("/get-api-keys",methods=["GET"])

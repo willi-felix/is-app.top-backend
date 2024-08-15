@@ -31,12 +31,14 @@ class Database:
         self.collection: Collection = self.db["frii.site"]
         self.vuln_collection: Collection = self.db["vulnerabilities"]
         self.translation_collection: Collection = self.db["translations"]
+        self.status_collection: Collection = self.db["status"]
         self.codes: Collection = self.db["codes"]
         self.api_collection:Collection = self.db["api"]
         self.verif_codes:dict={}
         self.encryption_key=encryption_key
         self.fernet = Fernet(bytes(encryption_key,"utf-8"))
         self.data_cache:dict={}
+        self.status_data = None
     
     @l.time
     def check_database_for_domain(self,domain:str) -> bool:
@@ -368,3 +370,17 @@ class Database:
         self.collection.update_one({"_id":token.username},{"$set":{"beta-enroll":False}})
         self.collection.update_one({"_id":token.username},{"$set":{"beta-updated":time.time()}})
         return True
+    
+    def __get_status_data(self):
+        if(self.status_data is None or self.status_data.get("expire",0) < time.time()):
+            data = self.status_collection.find_one({"_id":"current"})
+            if(data is None): return None
+            self.status_data = data
+            self.status_data["expire"] = time.time()+60
+            return data
+        else: return self.status_data
+    
+    def get_status(self) -> dict:
+        data = self.__get_status_data()
+        if(data is None): return {"reports":False}
+        else: return {"reports":True, "message":data.get("message","We are experiencing heavy traffic. Features may not work correctly")}

@@ -299,7 +299,9 @@ def credits_convert(token:str) -> Response:
     return Response(status=200)
 
 def status() -> Response:
-    
+    status = database.get_status()
+    if(status.get("reports",True)):
+        return Response(status=200,response=status.get("message","Our servers are experiencing issues."), mimetype="text/plain")
     return Response(status=204)
 
 def credits_get(token:str) -> Response:
