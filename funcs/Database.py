@@ -89,12 +89,13 @@ class Database:
         l.info(f"Modifying domain {domain}")
         if(not user.password_correct(self)): return False
         assert(domain!=None)
-        self.remove_from_cache(user)
+        self.modify_cache_domain(user,domain,domain_data)
         self.collection.update_one({"_id":user.username},{"$set":{f"domains.{domain}":domain_data}})
     
     @l.time
     def get_data(self,user:Token) -> dict:
         if(self.__get_cache(user) is not None): 
+            l.trace(f"Found user {user.username} in cache")
             return self.__get_cache(user)
         cursor: Cursor
         results_found: list = []
@@ -304,6 +305,22 @@ class Database:
             return None
         return self.data_cache.get(token.string_token,{}).get("data")
     
+    def modify_cache(self,token: Token, key: any, value: any):
+        l.trace(f"Modifying cache for user {token.username}")
+        if(token.string_token not in self.data_cache):
+            l.trace(f"User {token.username} not found in cache")
+            return None
+        self.data_cache[token.string_token]["data"][key] = value
+        return True
+    
+    def modify_cache_domain(self, token:Token, key: any, value:dict):
+        l.trace(f"Modifying domain {key} from cache")
+        if(token.string_token not in self.data_cache):
+            l.trace(f"User {token.username} not found in cache")
+            return None
+        self.data_cache[token.string_token]["data"]["domains"][key] = value
+        return True
+        
     def delete_account(self,token:Token, domain:'Domain') -> dict:
         """Deletes account and domains associated WARNING: INNER FUNCTION. Call with `email.delete_user()`
 

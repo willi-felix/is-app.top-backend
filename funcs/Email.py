@@ -77,7 +77,7 @@ class Email:
         if(code not in self.codes): return False
         if not round(time.time()) < self.codes[code]["expire"]: return False
         self.db.update_data(username=Token(self.codes[code]["account"]).username,key="verified",value=True)
-        self.db.remove_from_cache(Token(self.codes[code]["account"])) # invalidate cache for user
+        self.db.modify_cache(Token(self.codes[code]["account"]),"verified",True) # invalidate cache for user
         del self.codes[code]
         return True
     
