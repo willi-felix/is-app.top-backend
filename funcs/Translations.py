@@ -31,7 +31,7 @@ class Translations:
     def __calculate_percentages__(self,use_int:bool=False):
         main_language =  self.languages["en"]
         missing_keys:dict = {}
-        total_keys = 0
+        total_keys = len(main_language)
 
         for language in self.languages:
             preview_keys:dict = self.db.translation_collection.find_one({"_id":language})
@@ -39,15 +39,14 @@ class Translations:
                 l.warn(f"`preview_keys` doesn't exist for language {language}")
                 preview_keys = {}
             for key in main_language:
-                total_keys+=1
-                if key not in self.languages[language]:
-                    if language not in missing_keys:
-                        missing_keys[language] = {}
-                        missing_keys[language]["misses"] = 0
-                        missing_keys[language]["keys"] = []
-                    if(key not in preview_keys.get("keys",{})):
-                        missing_keys[language]["misses"] += 1
-                        missing_keys[language]["keys"].append({"key":key,"ref":main_language.get(key)})
+                if (language not in missing_keys):
+                    missing_keys[language] = {}
+                    missing_keys[language]["misses"] = 0
+                    missing_keys[language]["keys"] = []
+                print(f"{(key in self.languages[language])} - {(key in preview_keys.get('keys',{}))}")
+                if(key not in self.languages[language] and key not in preview_keys.get("keys",{})):
+                    missing_keys[language]["misses"] += 1
+                    missing_keys[language]["keys"].append({"key":key,"ref":main_language.get(key)})
         percentages = {}
         for language in missing_keys:
             self.keys[language] = missing_keys[language]["keys"]
