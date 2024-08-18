@@ -11,7 +11,7 @@ import datetime
 if TYPE_CHECKING:
     from Database import Database
     from Domain import Domain
-    
+
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -27,9 +27,9 @@ class Email:
         self.pass_codes:dict={}
 
         self.sync_codes()
-        
+
     @l.time
-    def sync_codes(self): 
+    def sync_codes(self):
         cursor=self.db.codes.find()
         results_processed:int=0
         for result in cursor:
@@ -54,17 +54,17 @@ class Email:
             "expiresAfter":datetime.datetime.now() + datetime.timedelta(minutes=5)
         })
         try:
-            r = resend.Emails.send({ 
-                "from": 'send@frii.site', 
-                "to": target, 
+            r = resend.Emails.send({
+                "from": 'send@frii.site',
+                "to": target,
                 "subject": "Verify your account",
-                "html": 
+                "html":
                 '<html><h1>Hello $username!</h1> <h2>Click <a href="https://api.frii.site/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 45 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://api.frii.site/verification/$code</div></html>'.replace("$username",display_name).replace("$code",random_pin)
             })
         except resend.exceptions.ResendError:
             return False
         return True
-        
+
     def verify_email(self,code: str) -> bool:
         """Confirms if email verification succeeded
 
@@ -76,11 +76,12 @@ class Email:
         """
         if(code not in self.codes): return False
         if not round(time.time()) < self.codes[code]["expire"]: return False
+        l.info(f"Code is valid, verifying {self.codes[code]}")
         self.db.update_data(username=Token(self.codes[code]["account"]).username,key="verified",value=True)
         self.db.modify_cache(Token(self.codes[code]["account"]),"verified",True) # invalidate cache for user
         del self.codes[code]
         return True
-    
+
     def send_delete_email(self,email:str,token:Token,displayname:str) -> bool:
         """Send an account deletion email to user
 
@@ -104,7 +105,7 @@ class Email:
             "html": '<html><div class="holder"> <h1>Hello $username.</h1> <h2>Click <a href="https://api.frii.site/account-deletion/$code">here</a> to confirm the deletion of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 30 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://api.frii.site/account-deletion/$code</div></html>'.replace("$code",random_pin).replace("$username",displayname)
         })
         return True
-    
+
     def initiate_account_deletion(self,token:Token)-> bool:
         if(not token.password_correct(self.db)): return False
 
@@ -113,7 +114,7 @@ class Email:
         return True
 
     def delete_user(self,code:str, __domain:Domain) -> dict:
-        """Delete users domains and account 
+        """Delete users domains and account
 
         Args:
             code (str): verification code
@@ -123,14 +124,14 @@ class Email:
                 `{"Error":True,"code":...,"message":...}`
             success:
                 `{"Error":False...}`
-            codes: 
+            codes:
                 1001 - Invalid code
                 1002 - expired
         """
         if (code not in self.del_codes): {"Error":True,"code":1001,"message":"Invalid code"}
         if (not round(time.time()) < self.del_codes[code]["expire"]): del self.del_codes[code]; return {"Error":True,"code":1002,"message":"Code expired"}
         return self.db.delete_account(Token(self.del_codes[code]["auth-token"]),__domain)
-    
+
     def resend_email(self,token:Token) -> bool:
         """Resends an email to user
 
@@ -146,7 +147,7 @@ class Email:
         if(data["verified"]): return False
         if("Error" in data): return False
         return self.send_verification(token,data["email"],data["username"])
-    
+
     def initiate_recovery(self,username:str) -> bool:
         """Sends a password recovery email to email
 
@@ -157,13 +158,13 @@ class Email:
             bool: if email was sent
         """
         hash_username = sha256(username.encode("utf-8")).hexdigest()
-        start = time.time() 
-        
+        start = time.time()
+
         user_data = self.db.collection.find_one({"_id":hash_username})
         print(f"Getting data from db: {time.time()-start}")
-    
+
         email = self.db.fernet.decrypt(str.encode(user_data["email"])).decode("utf-8")
-        
+
         random_pin = generate_random_string(32)
         try:
             r = resend.Emails.send({
@@ -179,7 +180,7 @@ class Email:
         self.pass_codes[random_pin]["expire"] = time.time()+30*60
         self.pass_codes[random_pin]["account"] = hash_username
         return True
-    
+
     def reset_password(self,code:str,new_password:str) -> bool:
         if(self.pass_codes.get(code,None) is None): return False
         new_password = str(sha256(new_password.encode("utf-8")).hexdigest())
