@@ -6,3 +6,5 @@ cert.pem
 .env
 .venv/
 venv/
+.vercel
+.env*.local
