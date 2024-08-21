@@ -339,6 +339,6 @@ class Domain:
             l.info(f"Registered domain {domain} succesfully")
             self.__add_domain_to_user(token,domain,content,type_,response.json().get("result",{}).get("id"))
         else:
-            l.warn(f"Registering domain cloudflare returned {response.status_code}")
-            return {"Error":True,"message":"Cloudflare did not accept domain"}
-        return {"Error":False,"message":"Succesfully registered"}
+            l.error(f"Registering domain cloudflare returned {response.status_code}")
+            return {"Error":True,"code":1030,"message":"Cloudflare did not accept domain"}
+        return {"Error":False,"code":0,"message":"Succesfully registered"}
