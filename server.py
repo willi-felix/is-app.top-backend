@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify
 from flask import render_template
 from connector import *
 import ipinfo
-import os 
+import os
 from flask_cors import CORS, cross_origin
 import time
 from flask_limit import RateLimiter
@@ -204,6 +204,10 @@ def credits_get_():
 @app.route("/status", methods=["GET"])
 def status_():
   return status()
+
+@app.route("/blog/<string:Blog>",methods=["GET"])
+def blog_get(Blog:str):
+    return blog_get(Blog)
 
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)
