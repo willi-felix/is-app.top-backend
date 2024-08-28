@@ -6,6 +6,7 @@ from  funcs.Utils import *  # noqa: F403
 from funcs import Vulnerability as _Vulnerability
 from funcs import Translations as _Translations
 from funcs import Api as _Api
+from funcs import Blog as _Blog
 from flask import Response, render_template
 from funcs import Logger as _Logger
 from funcs import Credits as _Credits
@@ -31,6 +32,7 @@ api:Api
 domain:Domain = Domain(database,os.getenv("EMAIL"),os.getenv("CF_KEY_W"),os.getenv("CF_KEY_R"),os.getenv("ZONEID"))
 email:Email = Email(os.getenv("RESEND_KEY"),database)
 vulnerability:Vulnerability = Vulnerability(database)
+blog:_Blog.Blog = _Blog.Blog(database)
 credits = Credits(database)
 translations = None
 l = _Logger.Logger("connector.py", os.getenv("DC_WEBHOOK"),os.getenv("DC_TRACE"))
@@ -75,7 +77,7 @@ def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
     __domain = __domain.replace(".","[dot]")
     if(token_.startswith("$API")):
         domain.register()
-        
+
     else:
         domain_register_status: dict = domain.register(__domain,content,Token(token_),type_)
         responses:dict = {
@@ -90,7 +92,7 @@ def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
         if(domain_register_status.get("Error",False)):
             return Response(status=responses.get(domain_register_status["code"],500),response=json.dumps(domain_register_status.get("message","No extra information given")))
         return Response(status=200)
-        
+
 #/modify-domain
 def modify_domain(__domain:str, token:str, content:str, type_:str) -> Response:
     __domain = __domain.replace(".","[dot]")
@@ -152,12 +154,12 @@ def get_domains(token:str) -> Response:
 
 #/is-verified
 def is_verified(token:str) -> Response:
-    if(database.is_verified(Token(token))): return Response(status=200) # 200 if verified, 
+    if(database.is_verified(Token(token))): return Response(status=200) # 200 if verified,
     return 201 # if not verified
 #/delete-domain
 def delete_domain(token:str,domain_:str) -> Response:
     domain_ = domain_.replace(".","[dot]")
-    
+
     responses = {
         -1: 403,
         0: 401,
@@ -201,7 +203,7 @@ def vulnerability_get(id:str) -> Response:
     status:dict
     try:
         status = vulnerability.get_report(id)
-    except(ValueError): 
+    except(ValueError):
         return Response(response=json.dumps({"Error":True,"code":1001,"message":"No report found"}), status=404, mimetype="application/json")
     return Response(response=json.dumps(status),status=200,mimetype="application/json")
 
@@ -273,12 +275,12 @@ def leave_beta(token:str) -> Response:
 def __init_translations():
     global translations
     if(translations is None): translations = _Translations.Translations(os.getenv("GH_KEY"),database)
-    
+
 
 def translation_percentages():
     __init_translations()
     return Response(status=200,response=json.dumps(translations.get_percentages()),mimetype="application/json")
- 
+
 def translation_missing(country:str) -> Response:
     __init_translations()
     return Response(status=200, response=json.dumps(translations.get_keys(country)),mimetype="application/json")
@@ -311,3 +313,10 @@ def credits_get(token:str) -> Response:
     except PermissionError:
         return Response(status=403)
     return Response(status=200,response=json.dumps({"credits":status}), mimetype="application/json")
+
+def blog_get(blog_:str) -> Response:
+    try:
+        status = blog.get(blog_)
+        return Response(status=200,response=json.dumps(status),mimetype="application/json")
+    except KeyError:
+        return Response(status=404)
