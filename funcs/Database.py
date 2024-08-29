@@ -254,6 +254,7 @@ class Database:
     @l.time
     def is_verified(self,token:Token) -> bool:
         data = self.get_basic_user_data(token)
+        l.info(f"is user {token.username} verified: {data.get('verified',None)}")
         return (data.get("verified",False))
 
     @l.time
