@@ -323,9 +323,9 @@ def blog_get(blog_:str) -> Response:
     except KeyError:
         return Response(status=404)
 
-def blog_create(auth:str,title:str,body:str) -> Response:
+def blog_create(auth:str,title:str,body:str,url=None) -> Response:
     try:
-        status = blog.create(Token(auth),title,body)
+        status = blog.create(Token(auth),title,body,url)
     except CredentialError:
         return Response(status=403)
     except PermissionError:

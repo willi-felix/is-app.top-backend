@@ -211,7 +211,7 @@ def blog_get_(Blog:str):
 
 @app.route("/blog/create", methods=["POST"])
 def blog_create_():
-    return blog_create(request.headers.get("X-Auth-Token"),request.json.get("title"), request.json.get("body"))
+    return blog_create(request.headers.get("X-Auth-Token"),request.json.get("title"), request.json.get("body"), request.json.get("url"))
 
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)
