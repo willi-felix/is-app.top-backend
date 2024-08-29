@@ -206,8 +206,12 @@ def status_():
   return status()
 
 @app.route("/blog/<string:Blog>",methods=["GET"])
-def blog_get(Blog:str):
+def blog_get_(Blog:str):
     return blog_get(Blog)
+
+@app.route("/blog/create", methods=["POST"])
+def blog_create_():
+    return blog_create(request.headers.get("X-Auth-Token"),request.json.get("title"), request.json.get("body"))
 
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)

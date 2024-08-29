@@ -19,9 +19,9 @@ class Blog:
             raise KeyError(f"Blog {code} not foun in database!")
     def create(self,token:Token, title:str,body:str,url=None) -> dict:
         if not token.password_correct(self.db): raise CredentialError("Password not correct",None)
-        if not self.db.get_data(token)["permissions"]["blog"]: raise PermissionError("User does nto have permissions to do this")
+        if not self.db.get_data(token)["permissions"].get("blog",False): raise PermissionError("User does nto have permissions to do this")
         if(url is None):
-            url=title.replace(" ","")
+            url=title.lower().replace(" ","")
         self.db.blog_collection.insert_one({
             "_id":url[:24],
             "date": round(time.time()),

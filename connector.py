@@ -1,4 +1,4 @@
-from funcs import Database as _Database
+from funcs import Admin, Database as _Database
 from funcs import Domain as _Domain
 from funcs import Email as _Email
 from funcs import Token as _Token
@@ -10,6 +10,7 @@ from funcs import Blog as _Blog
 from flask import Response, render_template
 from funcs import Logger as _Logger
 from funcs import Credits as _Credits
+from funcs import Admin as _Admin
 import os
 from dotenv import load_dotenv
 import json
@@ -23,7 +24,7 @@ Token = _Token.Token
 Api = _Api.Api
 Credits = _Credits.Credits
 Vulnerability = _Vulnerability.Vulnerability
-
+Admin = _Admin.Admin
 load_dotenv()
 
 database:Database = Database(os.getenv("MONGODB_URL"),os.getenv("ENC_KEY"))
@@ -33,6 +34,7 @@ domain:Domain = Domain(database,os.getenv("EMAIL"),os.getenv("CF_KEY_W"),os.gete
 email:Email = Email(os.getenv("RESEND_KEY"),database)
 vulnerability:Vulnerability = Vulnerability(database)
 blog:_Blog.Blog = _Blog.Blog(database)
+
 credits = Credits(database)
 translations = None
 l = _Logger.Logger("connector.py", os.getenv("DC_WEBHOOK"),os.getenv("DC_TRACE"))
@@ -320,3 +322,12 @@ def blog_get(blog_:str) -> Response:
         return Response(status=200,response=json.dumps(status),mimetype="application/json")
     except KeyError:
         return Response(status=404)
+
+def blog_create(auth:str,title:str,body:str) -> Response:
+    try:
+        status = blog.create(Token(auth),title,body)
+    except CredentialError:
+        return Response(status=403)
+    except PermissionError:
+        return Response(status=401)
+    return Response(status=200)
