@@ -36,7 +36,7 @@ class Domain:
         return valid
 
     @l.time
-    def __add_domain_to_user(self,token: 'Token', domain: str, content: str=None,  type_: str=None, domain_id: str=None) -> bool:
+    def __add_domain_to_user(self,token: 'Token', domain: str, content: str=None,  type_: str=None, domain_id: str=None,proxied:bool=False) -> bool:
         l.info(f"`__add_domain_to_user` adding domain {domain} to {token.username}")
         domain = domain.replace(".","[dot]")
         data = self.db.get_data(token)
@@ -45,7 +45,8 @@ class Domain:
                 "ip":content,
                 "type":type_,
                 "registered":time.time(),
-                "id":domain_id
+                "id":domain_id,
+                "proxy":proxied
             }
             self.db.add_domain(token,domain,domain_data)
             return True
@@ -58,6 +59,9 @@ class Domain:
         if(type_!=None):
             domain_data["type"]=type_
             l.trace("`__add_domain_to_user` updating ip since one is specified")
+        if(proxied is not None):
+            domain_data["proxy"]=proxied
+            l.trace("`__add_domain_to_user` updating proxy since one is specified")
         self.db.modify_domain(token,domain,domain_data)
         return True
 
@@ -190,7 +194,7 @@ class Domain:
         return 1
 
 
-    def modify(self,database: 'Database', domain: str, token:'Token', new_content: str, type_:str) -> dict:
+    def modify(self,database: 'Database', domain: str, token:'Token', new_content: str, type_:str, proxied:bool=False) -> dict:
         """Modify a domain
 
         Args:
@@ -229,7 +233,7 @@ class Domain:
         data_ = {
             "content": new_content,
             "name": domain.replace("[dot]",".") ,
-            "proxied": False,
+            "proxied": proxied,
             "type": type_, # from Dan: i added the type so you can add more records lol
             "comment": "Changed by "+(self.db.fernet.decrypt(str.encode(data['display-name']))).decode("utf-8") # a handy dandy lil message
         }
@@ -240,7 +244,7 @@ class Domain:
         }
         response:Response = requests.patch(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records/{domains[domain.replace('[dot]','.')]['id']}",json=data_,headers=headers,timeout=20)
         if(response.status_code==200):
-            self.__add_domain_to_user(token=token,domain=domain,content=new_content,domain_id=None,type_=type_)
+            self.__add_domain_to_user(token=token,domain=domain,content=new_content,domain_id=None,type_=type_,proxied=proxied)
             l.info(f"Modified {domain} for user {token.username}")
             return {"Error":False,"message":"Succesfully modified domain"}
         else:
@@ -276,7 +280,7 @@ class Domain:
         l.info(f"Modified domain {domain} with API")
         return {"Error":False,"code":1000,"message":"Succesfully changed domain"}
 
-    def register(self,domain: str, content: str, token: 'Token', type_: str) -> dict:
+    def register(self,domain: str, content: str, token: 'Token', type_: str, proxied:bool) -> dict:
         """Registers a domain
 
         Args:
@@ -329,7 +333,7 @@ class Domain:
         data_ = {
             "content": content,
             "name": domain.replace("[dot]","."), # because 'domain' is *only* the subdomain (example.frii.site->example)
-            "proxied": False, # so cloudflare doesn't proxy the content
+            "proxied": proxied, # so cloudflare doesn't proxy the content
             "type": type_.strip(), # the type of the record.
             "comment": "Issued by "+(self.db.fernet.decrypt(str.encode(self.db.get_data(token)["display-name"]))).decode("utf-8"), # just a handy-dandy lil feature that shows the admin (me) who registered the domain
             "ttl": 1 # auto ttl
@@ -337,7 +341,7 @@ class Domain:
         response = requests.post(f"https://api.cloudflare.com/client/v4/zones/{self.zone_id}/dns_records",headers=headers,json=data_)
         if(response.status_code==200):
             l.info(f"Registered domain {domain} succesfully")
-            self.__add_domain_to_user(token,domain,content,type_,response.json().get("result",{}).get("id"))
+            self.__add_domain_to_user(token,domain,content,type_,response.json().get("result",{}).get("id"), proxied)
         else:
             l.error(f"Registering domain cloudflare returned {response.status_code}")
             return {"Error":True,"code":1030,"message":"Cloudflare did not accept domain"}

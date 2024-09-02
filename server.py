@@ -57,7 +57,8 @@ def register_domain_():
   token_ = request.headers.get("X-Auth-Token",request.headers.get("X-Api-Key"))
   ip = request.json.get("content")
   type_ = request.json.get("type")
-  return register_domain(domain_,ip,token_,type_)
+  proxied = request.json.get("proxy",False)
+  return register_domain(domain_,ip,token_,type_, proxied)
 
 @app.route("/modify-domain",methods=["PATCH"])
 @limiter.rate_limit(limit=12,period=10*60)
@@ -66,7 +67,8 @@ def modify_domain_():
   token_ = request.headers.get("X-Auth-Token",request.headers.get("X-Api-Key"))
   content = request.json.get("content")
   type_ = request.json.get("type")
-  return modify_domain(domain_,token_,content,type_)
+  proxied = request.json.get("proxy",False)
+  return modify_domain(domain_,token_,content,type_,proxied)
 
 @limiter.rate_limit(limit=5,period=15*60)
 @app.route("/verification/<string:Code>", methods=["GET"])
