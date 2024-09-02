@@ -141,7 +141,11 @@ class Database:
         return {
             "Error":False,
             "username": (self.fernet.decrypt(str.encode(raw_data["display-name"]))).decode("utf-8"),
-            "email": (self.fernet.decrypt(str.encode(raw_data["email"]))).decode("utf-8")
+            "email": (self.fernet.decrypt(str.encode(raw_data["email"]))).decode("utf-8"),
+            "created": raw_data["created"],
+            "last-login": raw_data["last-login"],
+            "domains": raw_data.get("domain"),
+            "permissions": raw_data.get("permissions")
         }
 
     def admin_get_emails(self,token:Token,condition:dict) -> dict:
