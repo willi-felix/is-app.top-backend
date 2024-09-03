@@ -178,7 +178,7 @@ class Domain:
 
         domain_parts = domain.split(".")
         req_domain:str=domain_parts[-1]
-        if(req_domain!="" and req_domain not in domains):
+        if(req_domain!="" and domain_parts.__len__()!=1 and req_domain not in domains):
             l.info(f"User needs to own {req_domain} before registering {domain}!")
             return -1
         if(domain not in domains):
