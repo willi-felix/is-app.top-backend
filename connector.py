@@ -75,13 +75,13 @@ def domain_is_available(__domain:str) -> Response:
     return Response(status=responses.get(domain_status))
 
 #/register-domain
-def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
+def register_domain(__domain:str,content:str,token_:str,type_:str, proxy:bool) -> Response:
     __domain = __domain.replace(".","[dot]")
     if(token_.startswith("$API")):
         domain.register()
 
     else:
-        domain_register_status: dict = domain.register(__domain,content,Token(token_),type_)
+        domain_register_status: dict = domain.register(__domain,content,Token(token_),type_,proxy)
         responses:dict = {
             1000: 401,
             1001: 400,
@@ -96,7 +96,7 @@ def register_domain(__domain:str,content:str,token_:str,type_:str) -> Response:
         return Response(status=200)
 
 #/modify-domain
-def modify_domain(__domain:str, token:str, content:str, type_:str) -> Response:
+def modify_domain(__domain:str, token:str, content:str, type_:str, proxied:bool) -> Response:
     __domain = __domain.replace(".","[dot]")
     if(token.startswith("$API")):
         status = domain.modify_with_api(database,__domain,Api(token,database),content,type_)
@@ -108,7 +108,7 @@ def modify_domain(__domain:str, token:str, content:str, type_:str) -> Response:
         }
         return Response(status=responses.get(status["code"]),response=status.get("message","No extra information"))
     else:
-        status = domain.modify(database,__domain,Token(token),content,type_)
+        status = domain.modify(database,__domain,Token(token),content,type_,proxied)
         response:dict = {
             1001: 406,
             1011: 405,

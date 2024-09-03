@@ -141,7 +141,11 @@ class Database:
         return {
             "Error":False,
             "username": (self.fernet.decrypt(str.encode(raw_data["display-name"]))).decode("utf-8"),
-            "email": (self.fernet.decrypt(str.encode(raw_data["email"]))).decode("utf-8")
+            "email": (self.fernet.decrypt(str.encode(raw_data["email"]))).decode("utf-8"),
+            "created": raw_data["created"],
+            "last-login": raw_data["last-login"],
+            "domains": raw_data.get("domain"),
+            "permissions": raw_data.get("permissions")
         }
 
     def admin_get_emails(self,token:Token,condition:dict) -> dict:
@@ -196,6 +200,7 @@ class Database:
         data['email'] = (self.fernet.encrypt(bytes(email,'utf-8')).decode(encoding='utf-8')) # the encrypted email, but it is less encrypted
         data['password'] = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(encoding='utf-8') # the encrypted password
         data["display-name"] = (self.fernet.encrypt(bytes(username,'utf-8')).decode(encoding='utf-8')) # their display name, I don't think this can be changed tho lol
+        data["username"] = self.fernet.encrypt(bytes(original_username,'utf-8')).decode(encoding='utf-8')
         data['lang'] = language
         data['country'] = country
         data['email-hash'] = str(sha256((email+"supahcool").encode("utf-8")).hexdigest())
@@ -311,7 +316,6 @@ class Database:
         l.trace(f"Modifying cache for user {token.username}")
         if(token.string_token not in self.data_cache):
             l.trace(f"User {token.username} not found in cache")
-            self.__add_to_cache()
             return None
         self.data_cache[token.string_token]["data"][key] = value
         return True
