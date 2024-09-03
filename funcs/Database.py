@@ -315,7 +315,7 @@ class Database:
         l.trace(f"Modifying cache for user {token.username}")
         if(token.string_token not in self.data_cache):
             l.trace(f"User {token.username} not found in cache")
-            self.__add_to_cache()
+            self.__add_to_cache(token=token,data=self.get_data(token))
             return None
         self.data_cache[token.string_token]["data"][key] = value
         return True
