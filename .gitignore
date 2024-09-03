@@ -8,3 +8,5 @@ cert.pem
 venv/
 .vercel
 .env*.local
+server_key
+server_key.pub
