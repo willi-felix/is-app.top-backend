@@ -177,13 +177,7 @@ class Domain:
                 return 0
 
         domain_parts = domain.split(".")
-        user_domain:list=domain_parts[:-2][1:]
-        req_domain:str=""
-        for domain in user_domain:
-            part = domain
-            if(domain!=user_domain[-1]):
-                part += "."
-            req_domain+=part
+        req_domain:str=domain_parts[-1]
         if(req_domain!="" and req_domain not in domains):
             l.info(f"User needs to own {req_domain} before registering {domain}!")
             return -1
