@@ -41,7 +41,7 @@ class Domain:
         domain = domain.replace(".","[dot]")
         data = self.db.get_data(token)
         l.trace(f"User domains: {data['domains']}")
-        if(domain.replace(".","[dot]") not in data["domains"] and domain_id is not None):
+        if(domain.replace("[dot]",".") not in data["domains"] and domain_id is not None):
             l.info(f"`__add_domain_to_user` registering domain {domain}")
             domain_data = {
                 "ip":content,
