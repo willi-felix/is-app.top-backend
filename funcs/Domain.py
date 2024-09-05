@@ -117,7 +117,7 @@ class Domain:
         l.info(f"`delete_domain` succesfully deleted {domain}")
         self.db.update_data(username=token.username,key="domains",value=domains)
 
-        if response.status_code != 200 or :
+        if response.status_code != 200:
             l.warn(f"`delete_domain` response status was not 200 ({response.json()})")
 
         return 1
