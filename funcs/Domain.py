@@ -54,7 +54,7 @@ class Domain:
             return True
         l.info(f"`__add_domain_to_user` modifying domain {domain}")
 
-        domain_data = data["domains"][domain]
+        domain_data = data["domains"][domain.replace("[dot]",".")] # for some reason, get_data returns domains marked as [dot] as .
         l.info(f"Domain data: {data['domains'][domain]}")
         if(content!=None):
             domain_data["ip"]=content
