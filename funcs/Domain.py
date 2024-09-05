@@ -40,7 +40,8 @@ class Domain:
         l.info(f"`__add_domain_to_user` adding domain {domain} to {token.username}")
         domain = domain.replace(".","[dot]")
         data = self.db.get_data(token)
-        if(domain.replace(".","[dot]") not in data["domains"]):
+        if(domain.replace(".","[dot]") not in data["domains"] and domain_id!=None):
+            l.info(f"`__add_domain_to_user` registering domain {domain}")
             domain_data = {
                 "ip":content,
                 "type":type_,
@@ -50,6 +51,7 @@ class Domain:
             }
             self.db.add_domain(token,domain,domain_data)
             return True
+        l.info(f"`__add_domain_to_user` modifying domain {domain}")
 
         domain_data = data["domains"][domain]
         l.info(f"Domain data: {data['domains'][domain]}")
