@@ -55,7 +55,7 @@ class Domain:
         l.info(f"`__add_domain_to_user` modifying domain {domain}")
 
         domain_data = data["domains"][domain.replace("[dot]",".")] # for some reason, get_data returns domains marked as [dot] as .
-        l.info(f"Domain data: {data['domains'][domain.replace("[dot]",".")]}")
+        l.info(f"Domain data: {data['domains'][domain.replace('[dot]','.')]}")
         if(content!=None):
             domain_data["ip"]=content
             l.trace("`__add_domain_to_user` updating ip since one is specified")
