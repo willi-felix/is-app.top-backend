@@ -37,7 +37,7 @@ class Domain:
 
     @l.time
     def __add_domain_to_user(self,token: 'Token', domain: str, content: str=None,  type_: str=None, domain_id: str=None,proxied:bool=False) -> bool:
-        l.info(f"`__add_domain_to_user` adding domain {domain} to {token.username}")
+        l.info(f"`__add_domain_to_user` adding domain {domain} to {token.username}. Called with domain {domain} and id {domain_id}")
         domain = domain.replace(".","[dot]")
         data = self.db.get_data(token)
         if(domain.replace(".","[dot]") not in data["domains"]):
