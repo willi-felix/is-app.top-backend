@@ -96,7 +96,7 @@ class Domain:
             l.info("`delete_domain` password not correct")
             return 0
         domains: dict = self.get_user_domains(self.db,token)
-        if(domain not in domains):
+        if(domain.replace("[dot]",".") not in domains):
             l.info(f"Domain {domain} not in domains of user {token.username}")
             return -1
         headers: dict = {
@@ -117,7 +117,7 @@ class Domain:
         l.info(f"`delete_domain` succesfully deleted {domain}")
         self.db.update_data(username=token.username,key="domains",value=domains)
 
-        if response.status_code != 200:
+        if response.status_code != 200 or :
             l.warn(f"`delete_domain` response status was not 200 ({response.json()})")
 
         return 1
@@ -139,7 +139,7 @@ class Domain:
                 1001 - invalid creds
                 1002 - No domains
 
-        NOTE: Subdomains will be returned as a[dot]b[dot]c instead of a.b.c
+        NOTE: Subdomains will be returned as a.b.c, not a[dot]b[dot]c
         """
         if(not token.password_correct(database)):
             l.info(f"`get_user_domains` incorrect password for user {token.username}")
@@ -245,7 +245,7 @@ class Domain:
             l.info(f"Modified {domain} for user {token.username}")
             return {"Error":False,"message":"Succesfully modified domain"}
         else:
-            l.warn("`modify` CloudFlare didn't respond with a 200")
+            l.warn(f"`modify` CloudFlare didn't respond with a 200 ({response.json()})")
             return {"Error":True,"code":int(f"1{response.status_code}"),"message":"Backend api failed to respond with a valid status code."}
 
     def modify_with_api(self,database: 'Database', domain: str, apiKey:'Api', new_content:str, type_: str)->dict:
