@@ -38,7 +38,7 @@ class Email:
                 self.codes[result["_id"]] = {}
                 self.codes[result["_id"]]["account"]=self.db.fernet.decrypt(str.encode(result["account"])).decode("utf-8")
                 self.codes[result["_id"]]["expire"]=result["expire"]
-            if(result.get("type",None)=="delete")
+            if(result.get("type",None)=="delete"):
                 results_processed+=1
                 self.del_codes[result["_id"]] = {}
                 self.codes[result["_id"]]["auth-token"]=self.db.fernet.decrypt(str.encode(result["auth-token"])).decode("utf-8")
