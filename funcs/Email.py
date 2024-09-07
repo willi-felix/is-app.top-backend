@@ -45,11 +45,13 @@ class Email:
                 self.codes[result["_id"]]["expire"]=result["expire"]
         l.info(f"Processed a total of {results_processed} codes")
     def send_verification(self,token:Token,target:str,display_name:str) -> bool:
+        l.info(f"Sending verification to user {token.username}")
         expire_time = 45*60
         random_pin = generate_random_string(32)
         self.codes[random_pin] = {}
         self.codes[random_pin]["account"]=token.string_token
         self.codes[random_pin]["expire"]=time.time()+expire_time
+        l.info(f"Verification packet: {self.codes[random_pin]}")
         self.db.codes.create_index("expiresAfter",expireAfterSeconds=1)
         self.db.codes.insert_one({
             "_id":random_pin,
