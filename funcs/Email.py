@@ -112,7 +112,7 @@ class Email:
         self.db.codes.insert_one({
             "_id":random_pin,
             "type":"delete",
-            "expire":self.codes[random_pin]["expire"],
+            "expire":self.del_codes[random_pin]["expire"],
             "auth-token":str(self.db.fernet.encrypt(bytes(token.string_token,"utf-8")).decode(encoding='utf-8')),
             "expiresAfter":datetime.datetime.now() + datetime.timedelta(minutes=5)
         })
