@@ -38,6 +38,11 @@ class Email:
                 self.codes[result["_id"]] = {}
                 self.codes[result["_id"]]["account"]=self.db.fernet.decrypt(str.encode(result["account"])).decode("utf-8")
                 self.codes[result["_id"]]["expire"]=result["expire"]
+            if(result.get("type",None)=="delete")
+                results_processed+=1
+                self.del_codes[result["_id"]] = {}
+                self.codes[result["_id"]]["auth-token"]=self.db.fernet.decrypt(str.encode(result["auth-token"])).decode("utf-8")
+                self.codes[result["_id"]]["expire"]=result["expire"]
         l.info(f"Processed a total of {results_processed} codes")
     def send_verification(self,token:Token,target:str,display_name:str) -> bool:
         expire_time = 45*60
@@ -50,7 +55,7 @@ class Email:
             "_id":random_pin,
             "type":"verif",
             "expire":self.codes[random_pin]["expire"],
-            "account":self.db.fernet.encrypt(bytes(token.string_token,"utf-8")).decode(encoding='utf-8'),
+            "account":str(self.db.fernet.encrypt(bytes(token.string_token,"utf-8")).decode(encoding='utf-8')),
             "expiresAfter":datetime.datetime.now() + datetime.timedelta(minutes=5)
         })
         try:
@@ -103,6 +108,13 @@ class Email:
             "to": email,
             "subject": "Confirm your account deletion",
             "html": '<html><div class="holder"> <h1>Hello $username.</h1> <h2>Click <a href="https://api.frii.site/account-deletion/$code">here</a> to confirm the deletion of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 30 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://api.frii.site/account-deletion/$code</div></html>'.replace("$code",random_pin).replace("$username",displayname)
+        })
+        self.db.codes.insert_one({
+            "_id":random_pin,
+            "type":"delete",
+            "expire":self.codes[random_pin]["expire"],
+            "auth-token":str(self.db.fernet.encrypt(bytes(token.string_token,"utf-8")).decode(encoding='utf-8')),
+            "expiresAfter":datetime.datetime.now() + datetime.timedelta(minutes=5)
         })
         return True
 
