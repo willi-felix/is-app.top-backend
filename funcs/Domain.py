@@ -37,10 +37,12 @@ class Domain:
 
     @l.time
     def __add_domain_to_user(self,token: 'Token', domain: str, content: str=None,  type_: str=None, domain_id: str=None,proxied:bool=False) -> bool:
-        l.info(f"`__add_domain_to_user` adding domain {domain} to {token.username}")
+        l.info(f"`__add_domain_to_user` adding domain {domain} to {token.username}. Called with domain {domain} and id {domain_id}")
         domain = domain.replace(".","[dot]")
         data = self.db.get_data(token)
-        if(domain.replace(".","[dot]") not in data["domains"]):
+        l.trace(f"User domains: {data['domains']}")
+        if(domain.replace("[dot]",".") not in data["domains"] and domain_id is not None):
+            l.info(f"`__add_domain_to_user` registering domain {domain}")
             domain_data = {
                 "ip":content,
                 "type":type_,
@@ -50,9 +52,10 @@ class Domain:
             }
             self.db.add_domain(token,domain,domain_data)
             return True
+        l.info(f"`__add_domain_to_user` modifying domain {domain}")
 
-        domain_data = data["domains"][domain]
-        l.info(f"Domain data: {data['domains'][domain]}")
+        domain_data = data["domains"][domain.replace("[dot]",".")] # for some reason, get_data returns domains marked as [dot] as .
+        l.info(f"Domain data: {data['domains'][domain.replace('[dot]','.')]}")
         if(content!=None):
             domain_data["ip"]=content
             l.trace("`__add_domain_to_user` updating ip since one is specified")
@@ -139,7 +142,8 @@ class Domain:
                 1001 - invalid creds
                 1002 - No domains
 
-        NOTE: Subdomains will be returned as a[dot]b[dot]c instead of a.b.c
+        NOTE: Subdomains will be returned as a.b.c, not a[dot]b[dot]c
+
         """
         if(not token.password_correct(database)):
             l.info(f"`get_user_domains` incorrect password for user {token.username}")
@@ -245,7 +249,7 @@ class Domain:
             l.info(f"Modified {domain} for user {token.username}")
             return {"Error":False,"message":"Succesfully modified domain"}
         else:
-            l.warn("`modify` CloudFlare didn't respond with a 200")
+            l.warn(f"`modify` CloudFlare didn't respond with a 200 ({response.json()})")
             return {"Error":True,"code":int(f"1{response.status_code}"),"message":"Backend api failed to respond with a valid status code."}
 
     def modify_with_api(self,database: 'Database', domain: str, apiKey:'Api', new_content:str, type_: str)->dict:
