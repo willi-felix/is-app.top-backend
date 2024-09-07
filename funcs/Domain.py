@@ -99,7 +99,7 @@ class Domain:
             l.info("`delete_domain` password not correct")
             return 0
         domains: dict = self.get_user_domains(self.db,token)
-        if(domain.replace("[dot]",".") not in domains):
+        if(domain not in domains):
             l.info(f"Domain {domain} not in domains of user {token.username}")
             return -1
         headers: dict = {
@@ -143,6 +143,7 @@ class Domain:
                 1002 - No domains
 
         NOTE: Subdomains will be returned as a.b.c, not a[dot]b[dot]c
+
         """
         if(not token.password_correct(database)):
             l.info(f"`get_user_domains` incorrect password for user {token.username}")
