@@ -152,6 +152,7 @@ def get_domains(token:str) -> Response:
     status:dict = domain.get_user_domains(database,Token(token))
     if("Error" in status):
         return Response(status=responses.get(status["code"]))
+    if(len(status) == 0): return Response(status=404)
     return Response(response=json.dumps(status),status=200,mimetype="application/json")
 
 #/is-verified
