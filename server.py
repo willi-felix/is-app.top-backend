@@ -19,9 +19,6 @@ handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
 def handle_assert_error(error):
   return Response(status=403,response="Invalid token",mimetype="text/plain")
 
-
-
-
 @app.route("/")
 @cross_origin()
 def index():

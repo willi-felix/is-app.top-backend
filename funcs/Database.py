@@ -200,6 +200,7 @@ class Database:
         data['email'] = (self.fernet.encrypt(bytes(email,'utf-8')).decode(encoding='utf-8')) # the encrypted email, but it is less encrypted
         data['password'] = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode(encoding='utf-8') # the encrypted password
         data["display-name"] = (self.fernet.encrypt(bytes(username,'utf-8')).decode(encoding='utf-8')) # their display name, I don't think this can be changed tho lol
+        data["username"] = self.fernet.encrypt(bytes(original_username,'utf-8')).decode(encoding='utf-8')
         data['lang'] = language
         data['country'] = country
         data['email-hash'] = str(sha256((email+"supahcool").encode("utf-8")).hexdigest())
