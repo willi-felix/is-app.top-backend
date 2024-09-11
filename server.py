@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, url_for
 from flask import render_template
 from connector import *
 import ipinfo
@@ -18,6 +18,9 @@ handler = ipinfo.getHandler(os.getenv('IPINFO_KEY'))
 @app.errorhandler(AssertionError)
 def handle_assert_error(error):
   return Response(status=403,response="Invalid token",mimetype="text/plain")
+
+
+
 
 @app.route("/")
 @cross_origin()

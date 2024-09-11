@@ -4,9 +4,9 @@ from typing import TYPE_CHECKING
 from hashlib import sha256
 # pylint: disable=relative-beyond-top-level
 from .Utils import generate_random_string
+from .Token import Token
 if TYPE_CHECKING:
     from Database import Database
-    from Token import Token
 
 class Permission(Enum):
     M_TYPE=0
@@ -16,7 +16,8 @@ class Permission(Enum):
     DETAILS=4
 
 class Api:
-    def create(token:'Token', permissions_: list, domains: list, comment: str, database:Database) -> str:
+    @staticmethod
+    def create(token:Token, permissions_: list, domains: list, comment: str, database:Database) -> str:
         """Creates an API Key
 
         Args:
@@ -24,12 +25,13 @@ class Api:
             domains (list): list of domains that this will affect
             comment (str): Users left comment
             database (Database): instance of database
-        Raises: 
+        Raises:
         Returns:
             str: API Key
         """
         api_key:str="$APIV1="+generate_random_string(32)
         user_domains = database.get_data(token).get("domains",{})
+        print(database.get_data(token))
         for domain in domains:
             if(domain not in list(user_domains.keys())):
                 raise PermissionError("User does not own domain")
@@ -39,7 +41,7 @@ class Api:
             "domains":domains,
             "comment":comment
         }
-        
+
         encrypted_api_key:str = sha256((api_key+"frii.site").encode("utf-8")).hexdigest()
         database.collection.update_one({"_id":token.username},{"$set":{f"api-keys.{encrypted_api_key}":key}})
         return api_key
@@ -55,10 +57,10 @@ class Api:
             self.valid = False
         self.username=self.__get_username()
         self.domains=self.__get_domains()
-        
+
     def get_domain_id(self,target:str) -> str:
         return self.db.collection.find_one({f"api-keys.{self.__search_key}":{"$exists":True}}).get("domains",{}).get(target,{}).get("id")
-    
+
     def has_permission(self,target:Permission,domain:str, domains:list) -> bool:
         """Checks if API key has permissions to do a certain task
 
@@ -71,7 +73,7 @@ class Api:
         """
         if domain not in domains: return False
         return target in self.permissions
-    
+
     def required_permissions(self,domain:str,type_:str,content:str) -> list[Permission]:
         """Gives a list of required permissions
 
@@ -92,7 +94,7 @@ class Api:
             needed_perms.append(Permission.M_CONTENT)
         print("Needed perms: "+ str(needed_perms))
         return needed_perms
-    
+
     def __get_perms(self) -> list:
         result = self.db.collection.find_one({f"api-keys.{self.__search_key}":{"$exists":True}})
         print("Key from db: " +str(result))
@@ -107,10 +109,22 @@ class Api:
             if(permission=="type"):  permissions_list.append(Permission.M_TYPE)
             if(permission=="delete"):  permissions_list.append(Permission.DELETE)
         return permissions_list
-    
+
     def __get_domains(self) -> list:
         result = self.db.collection.find_one({f"api-keys.{self.__search_key}":{"$exists":True}})
         return result.get("domains",[])
-    
+
     def __get_username(self) -> str:
         return self.db.collection.find_one({f"api-keys.{self.__search_key}":{"$exists":True}}).get("_id")
+
+    @staticmethod
+    def get_keys(user:Token,db:Database) -> list:
+        """Returns the users api keys
+        Returns:
+            `[{key:string, domains:string[], perms:string[], comment:string}]`
+        """
+        user_keys:list = []
+        keys = db.get_data(user).get("api-keys",{})
+        for key in keys:
+            user_keys.append({"key":key,"domains":keys[key]["domains"], "perms":keys[key]["perms"], "comment":keys[key]["comment"]})
+        return user_keys

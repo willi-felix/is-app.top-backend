@@ -1,6 +1,6 @@
 userinfo.json
 /__pycache__/
-/funcs/__pycache__/
+funcs/__pycache__/
 key.pem
 cert.pem
 .env
@@ -8,3 +8,7 @@ cert.pem
 venv/
 .vercel
 .env*.local
+server_key
+server_key.pub
+*.go
+*.mod
