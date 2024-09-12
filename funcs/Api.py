@@ -37,6 +37,7 @@ class Api:
                 raise PermissionError("User does not own domain")
 
         key = {
+            "string": database.fernet.encrypt(bytes(api_key,'utf-8')).decode(encoding='utf-8'),
             "perms":permissions_,
             "domains":domains,
             "comment":comment
@@ -126,5 +127,6 @@ class Api:
         user_keys:list = []
         keys = db.get_data(user).get("api-keys",{})
         for key in keys:
-            user_keys.append({"key":key,"domains":keys[key]["domains"], "perms":keys[key]["perms"], "comment":keys[key]["comment"]})
+            api_key = db.fernet.decrypt(str.encode(keys[key]["string"])).decode("utf-8")
+            user_keys.append({"key":api_key,"domains":keys[key]["domains"], "perms":keys[key]["perms"], "comment":keys[key]["comment"]})
         return user_keys
