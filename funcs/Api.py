@@ -57,7 +57,8 @@ class Api:
         except IndexError:
             self.valid = False
         self.username=self.__get_username()
-        self.domains=self.__get_domains()
+        self.domains=self.__get_domains() # domains owned by user
+        self.affected_domains = self.__get_affected_domains() # domains that the API can modify
 
     def get_domain_id(self,target:str) -> str:
         return self.db.collection.find_one({f"api-keys.{self.__search_key}":{"$exists":True}}).get("domains",{}).get(target,{}).get("id")
@@ -118,6 +119,8 @@ class Api:
     def __get_username(self) -> str:
         return self.db.collection.find_one({f"api-keys.{self.__search_key}":{"$exists":True}}).get("_id")
 
+    def __get_affected_domains(self) -> list:
+        return self.db.collection.find_one({f"api-keys.{self.__search_key}":{"$exists":True}}).get("api-keys",{}).get(self.__search_key,{}).get("domains")
     @staticmethod
     def get_keys(user:Token,db:Database) -> list:
         """Returns the users api keys
