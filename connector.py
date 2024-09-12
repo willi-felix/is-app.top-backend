@@ -152,6 +152,7 @@ def get_domains(token:str) -> Response:
     status:dict = domain.get_user_domains(database,Token(token))
     if("Error" in status):
         return Response(status=responses.get(status["code"]))
+    if(len(status) == 0): return Response(status=404)
     return Response(response=json.dumps(status),status=200,mimetype="application/json")
 
 #/is-verified
@@ -331,3 +332,8 @@ def blog_create(auth:str,title:str,body:str,url=None) -> Response:
     except PermissionError:
         return Response(status=401)
     return Response(status=200)
+
+def get_api_keys(auth:str) -> Response:
+    auth_token = Token(auth)
+    if(not auth_token.password_correct(database)): return Response(status=401)
+    return Response(status=200,response=json.dumps(Api.get_keys(auth_token,database)),mimetype="application/json")

@@ -69,15 +69,15 @@ class Domain:
         return True
 
     def __add_dommain_to_user_api(self,api:'Api', domain:str, content:str=None, type_:str=None, domain_id:str=None) -> bool:
-        raise NotImplementedError("PLEASE FIX ME")
         if(domain not in api.domains):
             domain_data = {
                 "ip":content,
                 "type":type_,
                 "registered":time.time(),
-                "id":domain_id
+                "id":domain_id,
+                "proxy":False
             }
-            self.db.collection.update_one({"_id":api.username},{"$set":{f"domains.{domain}":domain_data}})
+            self.db.collection.update_one({"_id":api.username},{"$set":{f"domains.{domain.replace('.','[dot]')}":domain_data}})
             return True
 
         domain_data = api.domains.get(domain)
@@ -85,7 +85,7 @@ class Domain:
             domain_data["ip"]=content
         if(type_!=None):
             domain_data["type"]=type_
-        self.db.collection.update_one({"_id":api.username},{"$set":{f"domains.{domain}":domain_data}})
+        self.db.collection.update_one({"_id":api.username},{"$set":{f"domains.{domain.replace('.','[dot]')}":domain_data}})
         return True
 
     @l.time
@@ -254,6 +254,7 @@ class Domain:
 
     def modify_with_api(self,database: 'Database', domain: str, apiKey:'Api', new_content:str, type_: str)->dict:
         required_permissions = apiKey.required_permissions(domain,type_,new_content)
+        if(domain not in apiKey.affected_domains): return {"Error":True,"code":1001,"message":"API key does not have sufficent permissions"}
         for perm in required_permissions:
             if(perm not in apiKey.permissions):
                 l.info("`modify_with_api` API Key does not have the correct permissions")
