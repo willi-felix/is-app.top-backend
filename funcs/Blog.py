@@ -28,3 +28,16 @@ class Blog:
             "title":title,
             "body":body
         })
+
+    def get_list(self,articles:int) -> list:
+        """Gets the n articles and returns them as {url:string, created:unix_timestamp(int)}
+        NOTE:`articles` < 50
+        """
+        if(articles>50):
+            l.warn(f"Tried to get more than 50 articles {articles}. Denying request")
+            raise ValueError("Maximum allowed articles is 50")
+        results = []
+        cursor = self.db.blog_collection.find().sort({"date":-1}).limit(articles)
+        for article in cursor:
+            results.append({"url":article["_id"], "created": article["date"]})
+        return results

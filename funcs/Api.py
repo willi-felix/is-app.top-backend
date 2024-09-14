@@ -112,6 +112,11 @@ class Api:
             if(permission=="delete"):  permissions_list.append(Permission.DELETE)
         return permissions_list
 
+    def delete(self,auth:Token) -> bool:
+        if(not auth.password_correct(self.db)): raise PermissionError()
+        self.db.collection.update_one({f"api-keys.{self.__search_key}":{"$exists":True}},{"$unset":{f"api-keys.{self.__search_key}":""}})
+        return True
+
     def __get_domains(self) -> list:
         result = self.db.collection.find_one({f"api-keys.{self.__search_key}":{"$exists":True}})
         return result.get("domains",[])
