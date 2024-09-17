@@ -18,15 +18,15 @@ class Translations:
             "X-GitHub-Api-Version":"2022-11-28"
         }
         self.db:Database = database
-        response = requests.get("https://api.github.com/repos/ctih1/frii.site-frontend/contents/src/locales",headers=headers_)
-        
+        response = requests.get("https://api.github.com/repos/ctih1/frii.site-frontend/contents/src/locales?ref=dev",headers=headers_)
+
         self.languages: dict = {}
         for file in response.json():
             filename = file["name"].split(".")[0]
             self.languages[filename] = requests.get(file["download_url"]).json()
         self.keys = {}
         self.percentages = self.__calculate_percentages__()
-    
+
     @l.time
     def __calculate_percentages__(self,use_int:bool=False):
         main_language =  self.languages["en"]
@@ -62,10 +62,10 @@ class Translations:
             dict: {lang:0 to 1}
         """
         return self.percentages
-    
+
     def get_keys(self,language:str) -> dict:
         return self.keys[language]
-    
+
     def contribute(self, lang:str, keys: list,token:Token) -> bool:
         """Contributes to a specified language
 
@@ -76,13 +76,13 @@ class Translations:
         Returns:
             bool: If contributed
         """
-        
+
         language = {}
-        
-        if(not token.password_correct(self.db)): 
+
+        if(not token.password_correct(self.db)):
             l.info(f"Not adding translations for language {lang} because username and password are not correct")
             return False
-        
+
         for translation in keys:
             if(translation["val"]!=""):
                 try:
@@ -92,7 +92,7 @@ class Translations:
                 language["keys."+translation["key"]] = {}
                 language["keys."+translation["key"]]["val"] = translation["val"]
                 language["keys."+translation["key"]]["contributor"] = token.username
-            
+
         self.db.translation_collection.update_one(
             {"_id":lang},
             {"$set": language},upsert=True
