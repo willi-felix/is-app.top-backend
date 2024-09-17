@@ -159,6 +159,10 @@ def create_api_():
 def get_api_keys_():
   return get_api_keys(request.headers.get("X-Auth-Token"))
 
+@app.route("/api-delete", methods=["DELETE"])
+def api_delete_():
+    return api_delete(request.headers.get("X-Auth-Token"),request.json.get("key"))
+
 @app.route("/admin/get-email",methods=["GET"])
 def admin_get_email_():
   return admin_get_email(request.headers.get("X-Auth-Token"),request.args.get("id"))
@@ -214,6 +218,10 @@ def blog_get_(Blog:str):
 @app.route("/blog/create", methods=["POST"])
 def blog_create_():
     return blog_create(request.headers.get("X-Auth-Token"),request.json.get("title"), request.json.get("body"), request.json.get("url"))
+
+@app.route("/blog/get/all", methods=["GET"])
+def blog_get_all_():
+    return blog_get_all(int(request.args.get("n")))
 
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)

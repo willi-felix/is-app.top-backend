@@ -320,7 +320,7 @@ def credits_get(token:str) -> Response:
 def blog_get(blog_:str) -> Response:
     try:
         status = blog.get(blog_)
-        return Response(status=200,response=json.dumps(status),mimetype="application/json")
+        return Response(status=200,response=json.dumps(status),mimetype="application/json", headers={"Cache-Control":"public,max-age=0, s-maxage=43200","Access-Control-Allow-Origin": "*"})
     except KeyError:
         return Response(status=404)
 
@@ -337,3 +337,20 @@ def get_api_keys(auth:str) -> Response:
     auth_token = Token(auth)
     if(not auth_token.password_correct(database)): return Response(status=401)
     return Response(status=200,response=json.dumps(Api.get_keys(auth_token,database)),mimetype="application/json")
+
+def api_delete(auth:str,key:str) -> Response:
+    auth_token = Token(auth)
+    try:
+        Api(key,database).delete(auth_token)
+    except PermissionError:
+        return Response(status=403)
+    return Response(status=200)
+
+def blog_get_all(n:int) -> Response:
+    try:
+        blogs = blog.get_list(n)
+    except ValueError as e:
+        l.warn(f"ValueError while runniing blog.get_list(), aborting. {e}")
+        return Response(status=412)
+    return Response(status=200,response=json.dumps(blogs), mimetype="application/json", headers={"Cache-Control":"public,max-age=0, s-maxage=1800","Access-Control-Allow-Origin": "*"})
+
