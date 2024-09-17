@@ -320,7 +320,7 @@ def credits_get(token:str) -> Response:
 def blog_get(blog_:str) -> Response:
     try:
         status = blog.get(blog_)
-        return Response(status=200,response=json.dumps(status),mimetype="application/json", headers={"Cache-Control":"public,max-age=0, s-maxage=43200"})
+        return Response(status=200,response=json.dumps(status),mimetype="application/json", headers={"Cache-Control":"public,max-age=0, s-maxage=43200","Access-Control-Allow-Origin": "*"})
     except KeyError:
         return Response(status=404)
 
@@ -352,4 +352,4 @@ def blog_get_all(n:int) -> Response:
     except ValueError as e:
         l.warn(f"ValueError while runniing blog.get_list(), aborting. {e}")
         return Response(status=412)
-    return Response(status=200,response=json.dumps(blogs), mimetype="application/json", headers={"Cache-Control":"public,max-age=0, s-maxage=1800"})
+    return Response(status=200,response=json.dumps(blogs), mimetype="application/json", headers={"Cache-Control":"public,max-age=0, s-maxage=1800","Access-Control-Allow-Origin": "*"})
