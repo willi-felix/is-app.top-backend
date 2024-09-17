@@ -353,3 +353,4 @@ def blog_get_all(n:int) -> Response:
         l.warn(f"ValueError while runniing blog.get_list(), aborting. {e}")
         return Response(status=412)
     return Response(status=200,response=json.dumps(blogs), mimetype="application/json", headers={"Cache-Control":"public,max-age=0, s-maxage=1800","Access-Control-Allow-Origin": "*"})
+
