@@ -221,6 +221,7 @@ def blog_create_():
 
 @app.route("/blog/get/all", methods=["GET"])
 def blog_get_all_():
+    l.info(request.args.get("content")
     return blog_get_all(int(request.args.get("n")), int(request.args.get("content")))
 
 if(__name__=="__main__"):
