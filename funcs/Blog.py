@@ -46,6 +46,7 @@ class Blog:
         cursor = self.db.blog_collection.find().sort({"date":-1}).limit(articles)
         for article in cursor:
             if(content_length!=0):
+                l.info(f"content_length != 0 {content_length} - returning details")
                 results.append({
                     "url":article["_id"],
                     "created": article["date"],
@@ -53,5 +54,6 @@ class Blog:
                     "title": article["title"]
                 })
             else:
+                l.info(f"content_length == 0 {content_length} - returning overview")
                 results.append({"url":article["_id"], "created": article["date"]})
         return results
