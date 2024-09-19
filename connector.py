@@ -348,9 +348,9 @@ def api_delete(auth:str,key:str) -> Response:
 
 def blog_get_all(n:int,content:int=0) -> Response:
     try:
-        blogs = blog.get_list(n)
+        l.info(f"blog_get_all content={content}")
+        blogs = blog.get_list(n,content)
     except ValueError as e:
         l.warn(f"ValueError while runniing blog.get_list(), aborting. {e}")
         return Response(status=412)
     return Response(status=200,response=json.dumps(blogs), mimetype="application/json", headers={"Cache-Control":"public,max-age=0, s-maxage=1800","Access-Control-Allow-Origin": "*"})
-
