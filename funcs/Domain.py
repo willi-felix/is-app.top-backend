@@ -249,7 +249,7 @@ class Domain:
             l.info(f"Modified {domain} for user {token.username}")
             return {"Error":False,"message":"Succesfully modified domain"}
         else:
-            l.warn(f"`modify` CloudFlare didn't respond with a 200 ({response.json()})")
+            l.warn(f"`modify` CloudFlare didn't respond with a 200. Id used: {domains[domain.replace('[dot]','.')]['id']} ({response.json()})")
             return {"Error":True,"code":int(f"1{response.status_code}"),"message":"Backend api failed to respond with a valid status code."}
 
     def modify_with_api(self,database: 'Database', domain: str, apiKey:'Api', new_content:str, type_: str)->dict:

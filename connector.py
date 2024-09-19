@@ -320,7 +320,7 @@ def credits_get(token:str) -> Response:
 def blog_get(blog_:str) -> Response:
     try:
         status = blog.get(blog_)
-        return Response(status=200,response=json.dumps(status),mimetype="application/json", headers={"Cache-Control":"public,max-age=0, s-maxage=43200","Access-Control-Allow-Origin": "*"})
+        return Response(status=200,response=json.dumps(status),mimetype="application/json", headers={"Cache-Control":"public,max-age=0, s-maxage=1209600","Access-Control-Allow-Origin": "*"})
     except KeyError:
         return Response(status=404)
 
