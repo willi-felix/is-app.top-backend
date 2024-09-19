@@ -346,7 +346,7 @@ def api_delete(auth:str,key:str) -> Response:
         return Response(status=403)
     return Response(status=200)
 
-def blog_get_all(n:int) -> Response:
+def blog_get_all(n:int,content:int=0) -> Response:
     try:
         blogs = blog.get_list(n)
     except ValueError as e:
