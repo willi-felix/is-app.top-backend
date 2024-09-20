@@ -40,4 +40,4 @@ class Token:
 
     @staticmethod
     def generate(username:str, password:str) -> str:
-        return f"{sha256(password.encode('utf-8'))}|{sha256(username.encode('utf-8'))}"
+        return f"{sha256(password.encode('utf-8')).hexdigest()}|{sha256(username.encode('utf-8')).hexdigest()}"
