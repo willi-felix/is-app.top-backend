@@ -225,5 +225,6 @@ def blog_get_all_():
     else: content = int(request.args.get("content"))
     return blog_get_all(int(request.args.get("n")), content)
 
+
 if(__name__=="__main__"):
   app.run(port=5000,debug=True)

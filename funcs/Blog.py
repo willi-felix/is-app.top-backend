@@ -37,7 +37,6 @@ class Blog:
         content_length = n
             {url:string, created:unix_timestamp(int), body:string[:n], title:string}
         NOTE:`articles` < 50
-
         """
         if(articles>50):
             l.warn(f"Tried to get more than 50 articles {articles}. Denying request")
