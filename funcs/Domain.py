@@ -99,7 +99,7 @@ class Domain:
             l.info("`delete_domain` password not correct")
             return 0
         domains: dict = self.get_user_domains(self.db,token)
-        if(domain not in domains):
+        if(domain.replace("[dot]",".") not in domains):
             l.info(f"Domain {domain} not in domains of user {token.username}")
             return -1
         headers: dict = {
