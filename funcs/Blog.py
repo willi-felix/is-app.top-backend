@@ -1,10 +1,15 @@
 from .Logger import Logger
-from .Token import Token
+from .Session import Session
 from .Database import Database
 from .Utils import CredentialError
 import time
-l = Logger("blog.py","","")
 
+import os
+from dotenv import load_dotenv
+load_dotenv()
+
+
+l = Logger("blog.py",os.getenv("DC_WEBHOOK"),os.getenv("DC_TRACE")) # type: ignore
 class Blog:
     def __init__(self,db:Database):
         self.db = db
@@ -17,9 +22,10 @@ class Blog:
         else:
             l.info(f"Blog {code} was not found in database")
             raise KeyError(f"Blog {code} not foun in database!")
-    def create(self,token:Token, title:str,body:str,url=None) -> dict:
-        if not token.password_correct(self.db): raise CredentialError("Password not correct",None)
-        if not self.db.get_data(token)["permissions"].get("blog",False): raise PermissionError("User does nto have permissions to do this")
+
+    @Session.requires_auth
+    @Session.requires_permission("blog")
+    def create(self,session:Session, title:str,body:str,url=None) -> dict:
         if(url is None):
             url=title.lower().replace(" ","")
         self.db.blog_collection.insert_one({
