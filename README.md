@@ -13,18 +13,18 @@ You'll need the following keys:
 P.S: These keys are listed in the following format: `Service (key name in .ENV file) - usage`
 
 Optional:
-  [IPInfo](https://ipinfo.io/developers) (IPINFO_KEY) - Gets country details and associates them with users. WARN: Not setting up this key might cause instability / crashes.
-  Discord webhook (DC_TRACE and DC_WEBHOOK. Usage requires some slight code changes) - Sends logs to certain channels
-  [Sentry](https://sentry.io/welcome/) (SENTRY_URL) - Used for debugging. WARN: Not setting up this key might cause instability / crashes.
-  [GitHub](https://github.com/settings/tokens] (GH_KEY) - Used for translations 
+  - [IPInfo](https://ipinfo.io/developers) (IPINFO_KEY) - Gets country details and associates them with users. WARN: Not setting up this key might cause instability / crashes.
+  - Discord webhook (DC_TRACE and DC_WEBHOOK. Usage requires some slight code changes) - Sends logs to certain channels
+  - [Sentry](https://sentry.io/welcome/) (SENTRY_URL) - Used for debugging. WARN: Not setting up this key might cause instability / crashes.
+  - [GitHub](https://github.com/settings/tokens] (GH_KEY) - Used for translations 
 
 Required:
-  [Resend](https://resend.com/) (RESEND_KEY) - Used for email verification
-  [MongoDB](https://www.mongodb.com/) (MONGODB_URL) - Used for storing data
-  [Cloudflare API key](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) (CF_KEY_W and CF_KEY_R) - Used for DNS management
-  Cloudflare Email (EMAIL) - Used for DNS management. (Make sure to use the email your cloudflare account is associated with)
-  [Cloudflare Zone](https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/) (ZONEID) - DNS management
-  [Fernet encryption key](https://fernetkeygen.com/) (ENC_KEY) - Used for encrypting certain data in the database.
+  - [Resend](https://resend.com/) (RESEND_KEY) - Used for email verification
+  - [MongoDB](https://www.mongodb.com/) (MONGODB_URL) - Used for storing data
+  - [Cloudflare API key](https://developers.cloudflare.com/fundamentals/api/get-started/create-token/) (CF_KEY_W and CF_KEY_R) - Used for DNS management
+  - Cloudflare Email (EMAIL) - Used for DNS management. (Make sure to use the email your cloudflare account is associated with)
+  - [Cloudflare Zone](https://developers.cloudflare.com/fundamentals/setup/find-account-and-zone-ids/) (ZONEID) - DNS management
+  - [Fernet encryption key](https://fernetkeygen.com/) (ENC_KEY) - Used for encrypting certain data in the database.
 
 After setting up these keys, you can continue to Enviroment setup
   
