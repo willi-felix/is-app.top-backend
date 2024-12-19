@@ -16,7 +16,7 @@ Optional:
   - [IPInfo](https://ipinfo.io/developers) (IPINFO_KEY) - Gets country details and associates them with users. WARN: Not setting up this key might cause instability / crashes.
   - Discord webhook (DC_TRACE and DC_WEBHOOK. Usage requires some slight code changes) - Sends logs to certain channels
   - [Sentry](https://sentry.io/welcome/) (SENTRY_URL) - Used for debugging. WARN: Not setting up this key might cause instability / crashes.
-  - [GitHub](https://github.com/settings/tokens] (GH_KEY) - Used for translations 
+  - [GitHub](https://github.com/settings/tokens) (GH_KEY) - Used for translations 
 
 Required:
   - [Resend](https://resend.com/) (RESEND_KEY) - Used for email verification
