@@ -64,11 +64,11 @@ class Email:
         })
         try:
             r = resend.Emails.send({
-                "from": 'send@frii.site',
+                "from": 'send@mail.is-app.top',
                 "to": target,
                 "subject": "Verify your account",
                 "html":
-                '<html><h1>Hello $username!</h1> <h2>Click <a href="https://api.frii.site/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 45 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://api.frii.site/verification/$code</div></html>'.replace("$username",display_name).replace("$code",random_pin)
+                '<html><h1>Hello $username!</h1> <h2>Click <a href="https://is-app-top-backend.vercel.app/verification/$code">here</a> to verify your account</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 45 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://is-app-top-backend.vercel.app/verification/$code</div></html>'.replace("$username",display_name).replace("$code",random_pin)
             })
         except resend.exceptions.ResendError as e:
             l.error(f"Failed to send email {e}")
@@ -113,7 +113,7 @@ class Email:
             "from":"send@frii.site",
             "to": email,
             "subject": "Confirm your account deletion",
-            "html": '<html><div class="holder"> <h1>Hello $username.</h1> <h2>Click <a href="https://api.frii.site/account-deletion/$code">here</a> to confirm the deletion of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 30 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://api.frii.site/account-deletion/$code</div></html>'.replace("$code",random_pin).replace("$username",displayname)
+            "html": '<html><div class="holder"> <h1>Hello $username.</h1> <h2>Click <a href="https://is-app-top-backend.vercel.app/account-deletion/$code">here</a> to confirm the deletion of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>This code will expire in 30 minutes.</p> <p>Link not working? Copy the text below into your browser address bar</p>https://is-app-top-backend.vercel.app/account-deletion/$code</div></html>'.replace("$code",random_pin).replace("$username",displayname)
         })
         self.db.codes.insert_one({
             "_id":random_pin,
@@ -195,7 +195,7 @@ class Email:
                 "from":"send@frii.site",
                 "to": email,
                 "subject": "Password recovery",
-                "html": '<html><h1>Hello dear frii.site user.</h1> <h2>Click <a href="https://www.frii.site/account/recover?c=$code">here</a> to reset the password of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>Link not working? Copy the text below into your browser address bar</p> https://www.frii.site/account/recover?c=$code </div></html>'.replace("$code",random_pin)
+                "html": '<html><h1>Hello dear is-app.top user.</h1> <h2>Click <a href="https://is-app-top-backend.vercel.app/account/recover?c=$code">here</a> to reset the password of your account.</h2> <h3>Do <b>NOT</b> share this code!</h3> <p>Link not working? Copy the text below into your browser address bar</p> https://is-app-top-backend.vercel.app/account/recover?c=$code </div></html>'.replace("$code",random_pin)
             })
         except resend.exceptions.ResendError:
             print("Email error")
