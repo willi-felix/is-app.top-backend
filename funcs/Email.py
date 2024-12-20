@@ -64,7 +64,7 @@ class Email:
         })
         try:
             r = resend.Emails.send({
-                "from": "is-app.top <send@mail.is-app.to>",
+                "from": 'is-app.top <send@mail.is-app.to>',
                 "to": target,
                 "subject": "Verify your account",
                 "html":
